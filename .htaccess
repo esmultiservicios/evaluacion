@@ -1,0 +1,6 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(?:app|storage|vendor)/ - [F,L]
+<FilesMatch "^\.env$">
+  Require all denied
+</FilesMatch>
