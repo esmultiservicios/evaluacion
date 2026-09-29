@@ -130,3 +130,71 @@ body.login-body .login-card{
     padding-bottom:22px;
   }
 }
+
+
+/* v6.5 · Capas, topbar fijo y login móvil centrado */
+:root{--admin-topbar-h:84px}
+.admin-main{padding-top:var(--admin-topbar-h)}
+.admin-topbar{
+  position:fixed;
+  top:0;right:0;left:250px;
+  z-index:20000;
+  height:var(--admin-topbar-h);
+  overflow:visible;
+}
+.global-search{z-index:20010}
+.global-search-results{z-index:20020}
+.user-menu{z-index:70000}
+.user-menu.open{z-index:70000}
+.user-dropdown{z-index:70010}
+.ui-modal{z-index:100000!important;isolation:isolate}
+.ui-modal-card{position:relative;z-index:100001}
+.sidebar{z-index:30000}
+.sidebar-backdrop{z-index:29990!important}
+
+@media(max-width:1080px) and (min-width:801px){
+  .admin-topbar{left:82px}
+}
+@media(max-width:800px){
+  :root{--admin-topbar-h:132px}
+  .admin-topbar{left:0;right:0;top:0;z-index:20000}
+  .admin-main{padding-top:var(--admin-topbar-h)}
+  .user-menu,.user-menu.open{z-index:70000}
+  .user-dropdown{z-index:70010;top:calc(100% + 7px)}
+  .global-search{z-index:20005}
+  .ui-modal{z-index:100000!important;padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))}
+  .ui-modal-card{max-height:calc(100dvh - 20px)}
+}
+
+/* El login permanece centrado incluso con las barras del navegador móvil. */
+html:has(body.login-body){height:100%;min-height:100%}
+body.login-body{
+  height:100vh;
+  height:100svh;
+  height:100dvh;
+  min-height:100vh;
+  min-height:100svh;
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+}
+body.login-body .auth-shell{
+  width:100%;
+  min-height:0;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+body.login-body .login-card{margin:auto}
+@media(max-width:800px){
+  body.login-body{padding:max(12px,env(safe-area-inset-top)) 14px max(12px,env(safe-area-inset-bottom))}
+  body.login-body .auth-shell{height:100%;min-height:0}
+}
+@media(max-height:560px){
+  body.login-body{height:auto;min-height:100dvh;align-items:flex-start}
+  body.login-body .auth-shell{height:auto;min-height:100dvh;padding:10px 0}
+}

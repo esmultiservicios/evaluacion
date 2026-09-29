@@ -28,6 +28,14 @@
   $('[data-user-trigger]')?.addEventListener('click',e=>{e.stopPropagation();userMenu?.classList.toggle('open')});
   d.addEventListener('click',e=>{if(userMenu&&!userMenu.contains(e.target))userMenu.classList.remove('open')});
 
+  // Confirmación profesional antes de cerrar sesión.
+  $$('.logout-link').forEach(link=>link.addEventListener('click',async e=>{
+    e.preventDefault();
+    userMenu?.classList.remove('open');
+    const result=await Swal.fire({icon:'warning',title:'¿Cerrar sesión?',text:'Tu sesión administrativa se cerrará de forma segura.',showCancelButton:true,confirmButtonText:'Sí, cerrar sesión',cancelButtonText:'Cancelar',allowOutsideClick:false});
+    if(result.isConfirmed)window.location.href=link.href;
+  }));
+
   // Global search
   const global=$('[data-global-search]'),globalInput=$('[data-global-search-input]'),globalResults=$('[data-global-search-results]'),globalClear=$('[data-global-search-clear]');
   let globalTimer=null,globalController=null;
