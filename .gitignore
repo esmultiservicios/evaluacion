@@ -1,0 +1,29 @@
+# ==========================================================
+# Evaluación Corporativa Premium - archivos locales/runtime
+# ==========================================================
+
+# Instalación / configuración local
+/.env
+/install.lock
+
+# Archivos subidos en ejecución
+/uploads/*
+!/uploads/.htaccess
+
+# Logs, caché y temporales
+/logs/
+/cache/
+/tmp/
+*.log
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Archivos temporales de editores
+*.swp
+*.swo
+*~

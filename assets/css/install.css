@@ -93,3 +93,152 @@
   .wizard-layout,.wizard-sidebar,.wizard-main,.wizard-form{height:auto;min-height:0}
   .wizard-step{overflow:visible}
 }
+
+/* v6.3 · Premium desktop scale: larger, clearer, still contained in viewport */
+@media (min-width:901px){
+  .install-shell{
+    width:min(1360px,calc(100% - 28px));
+    height:100dvh;
+    max-height:100dvh;
+    padding:12px 0;
+    gap:12px;
+  }
+  .install-hero{
+    min-height:84px;
+    padding:18px 26px;
+    border-radius:20px;
+  }
+  .hero-kicker{font-size:11.5px;letter-spacing:1.7px}
+  .install-hero h1{font-size:30px;line-height:1.12;margin:4px 0 3px}
+  .install-hero p{font-size:13px;line-height:1.4}
+  .hero-mark{width:54px;height:54px;flex-basis:54px;border-radius:15px;font-size:15px}
+
+  .wizard-layout{grid-template-columns:300px minmax(0,1fr);gap:16px}
+  .wizard-sidebar,.wizard-main{border-radius:20px}
+  .wizard-sidebar{padding:16px}
+  .progress-overview{padding:3px 4px 13px;margin-bottom:10px}
+  .progress-overview strong{font-size:14px}
+  .progress-overview span{font-size:11.5px;margin-top:3px}
+  .progress-track{height:7px;margin-top:9px}
+  .wizard-nav{gap:5px}
+  .wizard-nav button{grid-template-columns:34px minmax(0,1fr);gap:9px;padding:8px 9px;border-radius:11px}
+  .wizard-nav .nav-num{width:32px;height:32px;border-radius:9px;font-size:12.5px}
+  .wizard-nav .nav-copy strong{font-size:12.5px;line-height:1.25}
+  .wizard-nav .nav-copy small{font-size:10px;line-height:1.3;margin-top:2px}
+
+  .wizard-step{padding:22px 26px 12px}
+  .step-head{gap:13px;margin-bottom:17px}
+  .step-icon{width:46px;height:46px;flex-basis:46px;border-radius:13px}
+  .step-icon svg{width:23px;height:23px}
+  .step-head h2{font-size:22px;letter-spacing:-.25px}
+  .step-head p{font-size:12.5px;line-height:1.45;margin-top:4px}
+
+  .form-grid{gap:11px 14px}
+  .field>label,.field-title{font-size:12px;margin-bottom:6px}
+  .field-hint{font-size:10px;margin-top:4px;line-height:1.35}
+  .input-wrap input,.field>input,.field textarea{min-height:44px;padding:9px 12px;border-radius:11px;font-size:13px}
+  .password-control input{padding-right:46px!important}
+  .password-toggle{right:6px;width:33px;height:33px;border-radius:8px}
+  .password-toggle svg{width:17px;height:17px}
+
+  .requirements{gap:8px 10px}
+  .req-card{grid-template-columns:33px minmax(0,1fr);gap:9px;padding:9px 11px;border-radius:12px}
+  .req-state{width:31px;height:31px;border-radius:9px;font-size:12.5px}
+  .req-copy strong{font-size:11.5px}
+  .req-copy small{font-size:9.5px;line-height:1.3;margin-top:2px}
+  .inline-note{margin-top:11px;padding:10px 12px;border-radius:11px;font-size:10.5px;line-height:1.45}
+
+  .radio-grid{gap:10px}
+  .radio-ui{min-height:76px;border-radius:13px;padding:11px;grid-template-columns:34px minmax(0,1fr) 19px;gap:10px}
+  .radio-icon{width:34px;height:34px;border-radius:10px}
+  .radio-icon svg{width:18px;height:18px}
+  .radio-copy strong{font-size:12px}
+  .radio-copy small{font-size:9.8px;line-height:1.35;margin-top:3px}
+  .radio-dot{width:19px;height:19px}
+  .mail-switch{margin-bottom:12px}
+  .mail-group[data-mail="SMTP"],.mail-group[data-mail="GRAPH"]{margin-top:10px!important}
+  .segmented{gap:7px}
+  .segment span{min-width:82px;min-height:37px;border-radius:10px;font-size:11.5px}
+  #mailNow>.form-grid{margin-top:9px!important}
+  .test-bar{margin-top:9px;padding:10px 11px;border-radius:11px;gap:10px}
+
+  .summary-grid{gap:9px}
+  .summary-card{padding:11px 13px;border-radius:12px}
+  .summary-card span{font-size:9.5px}
+  .summary-card strong{font-size:12px;margin-top:4px}
+  .summary-card p{font-size:9.8px;margin-top:4px}
+
+  .wizard-footer{padding:11px 26px 13px;min-height:62px}
+  .btn{min-height:41px;padding:0 15px;border-radius:10px;font-size:12px}
+  .btn svg{width:16px;height:16px;flex-basis:16px}
+  .step-counter{font-size:10px}
+}
+
+/* Keep the same premium proportions on shorter laptop viewports without overflow. */
+@media (min-width:901px) and (max-height:820px){
+  .install-shell{padding:8px 0;gap:8px}
+  .install-hero{min-height:70px;padding:13px 22px}
+  .hero-kicker{font-size:10.5px}
+  .install-hero h1{font-size:27px;margin:2px 0 1px}
+  .install-hero p{font-size:11.5px;line-height:1.3}
+  .hero-mark{width:48px;height:48px;flex-basis:48px;border-radius:14px}
+  .wizard-layout{grid-template-columns:290px minmax(0,1fr);gap:12px}
+  .wizard-sidebar{padding:13px}
+  .progress-overview{padding-bottom:9px;margin-bottom:7px}
+  .progress-overview strong{font-size:13px}
+  .progress-overview span{font-size:10px}
+  .wizard-nav{gap:3px}
+  .wizard-nav button{grid-template-columns:31px minmax(0,1fr);gap:8px;padding:6px 8px}
+  .wizard-nav .nav-num{width:29px;height:29px;font-size:11.5px}
+  .wizard-nav .nav-copy strong{font-size:11.5px}
+  .wizard-nav .nav-copy small{font-size:9px}
+  .wizard-step{padding:16px 21px 8px}
+  .step-head{gap:10px;margin-bottom:10px}
+  .step-icon{width:39px;height:39px;flex-basis:39px}
+  .step-icon svg{width:19px;height:19px}
+  .step-head h2{font-size:19.5px}
+  .step-head p{font-size:10.5px;line-height:1.35;margin-top:2px}
+  .form-grid{gap:8px 11px}
+  .field>label,.field-title{font-size:10.8px;margin-bottom:4px}
+  .field-hint{font-size:8.8px;margin-top:2px}
+  .input-wrap input,.field>input,.field textarea{min-height:38px;padding:7px 10px;font-size:11.5px}
+  .password-toggle{width:29px;height:29px}
+  .requirements{gap:6px 8px}
+  .req-card{grid-template-columns:29px minmax(0,1fr);gap:7px;padding:7px 9px}
+  .req-state{width:27px;height:27px;font-size:11px}
+  .req-copy strong{font-size:10px}
+  .req-copy small{font-size:8.2px;line-height:1.22}
+  .inline-note{margin-top:7px;padding:7px 9px;font-size:9px;line-height:1.32}
+  .radio-grid{gap:7px}
+  .radio-ui{min-height:60px;padding:8px;grid-template-columns:29px minmax(0,1fr) 17px;gap:8px}
+  .radio-icon{width:29px;height:29px}
+  .radio-copy strong{font-size:10.5px}
+  .radio-copy small{font-size:8.4px;line-height:1.25;margin-top:2px}
+  .radio-dot{width:17px;height:17px}
+  .mail-switch{margin-bottom:7px}
+  .mail-group[data-mail="SMTP"],.mail-group[data-mail="GRAPH"]{margin-top:6px!important}
+  .segment span{min-width:72px;min-height:32px;font-size:10px}
+  #mailNow>.form-grid{margin-top:6px!important}
+  .test-bar{margin-top:6px;padding:7px 8px}
+  .summary-grid{gap:6px}
+  .summary-card{padding:8px 10px}
+  .summary-card span{font-size:8px}
+  .summary-card strong{font-size:10.5px;margin-top:3px}
+  .summary-card p{font-size:8.4px;margin-top:3px}
+  .wizard-footer{min-height:52px;padding:8px 21px 9px}
+  .btn{min-height:36px;font-size:10.5px}
+  .step-counter{font-size:9px}
+}
+
+@media (min-width:901px) and (max-height:690px){
+  .install-hero p{display:none}
+  .install-hero{min-height:58px;padding:9px 18px}
+  .install-hero h1{font-size:23px}
+  .hero-mark{width:42px;height:42px;flex-basis:42px}
+  .wizard-layout{grid-template-columns:270px minmax(0,1fr)}
+  .wizard-sidebar{padding:10px}
+  .wizard-step{padding:11px 17px 6px}
+  .step-head{margin-bottom:7px}
+  .step-head p{font-size:9px}
+  .wizard-footer{min-height:46px;padding:6px 17px 7px}
+}

@@ -106,9 +106,9 @@ function svgIcon(string $name): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Instalador · Evaluación Corporativa Premium</title><link rel="icon" href="../assets/img/favicon.svg"><link rel="shortcut icon" href="../assets/img/favicon.svg"><link rel="apple-touch-icon" href="../assets/img/favicon.svg">
-<link rel="stylesheet" href="../assets/css/install.css?v=3">
-<link rel="stylesheet" href="../assets/css/notify.css?v=3">
-<link rel="stylesheet" href="../assets/vendor/sweetalert2/sweetalert2.local.css?v=3">
+<link rel="stylesheet" href="../assets/css/install.css?v=4">
+<link rel="stylesheet" href="../assets/css/notify.css?v=4">
+<link rel="stylesheet" href="../assets/vendor/sweetalert2/sweetalert2.local.css?v=4">
 <script>window.INSTALL_NOTIFY=<?=json_encode($error!==''?['type'=>'error','message'=>$error]:null,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>;</script>
 </head>
 <body>
