@@ -26,9 +26,6 @@ try{
         $st=$pdo->prepare("SELECT id,badge,name FROM employees WHERE id=? AND status='active' LIMIT 1 FOR UPDATE");$st->execute([$empId]);$e=$st->fetch();if(!$e)throw new RuntimeException('Participante no válido o inactivo.');
         $st=$pdo->prepare('SELECT id,time_limit_seconds FROM games WHERE id=? AND active=1 LIMIT 1');$st->execute([$gameId]);$gameRow=$st->fetch();if(!$gameRow)throw new RuntimeException('El juego ya no está disponible.');
         $st=$pdo->prepare('SELECT position FROM game_assignments WHERE employee_id=? AND game_id=? LIMIT 1');$st->execute([$empId,$gameId]);$assignedPosition=$st->fetchColumn();if($assignedPosition===false)throw new RuntimeException('Este juego no está asignado al participante actual. Vuelve a Mis juegos.');
-        if(setting('game_navigation_mode','free')==='guided'){
-            $st=$pdo->prepare('SELECT ga.game_id FROM game_assignments ga LEFT JOIN game_attempts a ON a.employee_id=ga.employee_id AND a.game_id=ga.game_id AND a.completed_at IS NOT NULL WHERE ga.employee_id=? AND a.id IS NULL ORDER BY ga.position,ga.id LIMIT 1');$st->execute([$empId]);$nextAssigned=(int)($st->fetchColumn()?:0);if($nextAssigned>0&&$nextAssigned!==$gameId)throw new RuntimeException('Este reto todavía está bloqueado. Completa primero el reto disponible.');
-        }
         $st=$pdo->prepare('SELECT id FROM game_attempts WHERE game_id=? AND employee_id=? AND completed_at IS NOT NULL LIMIT 1 FOR UPDATE');$st->execute([$gameId,$empId]);
         if($st->fetchColumn()){
             $pdo->rollBack();

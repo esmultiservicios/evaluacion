@@ -184,3 +184,12 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - Reportes consolidados por persona con evaluación, juegos, aciertos, promedio y tiempo total.
 - Mensajes `showNotify` y confirmaciones siempre por encima de los modales.
 - Contenido base más intuitivo: términos técnicos explicados, ejemplo legítimo de RRHH con `lear.com`, phishing claramente diferenciado y un tercer reto en “Encuentra los errores”.
+
+
+## v8.7.1 - participación cerrada y reinicio administrativo
+- Todos los juegos asignados quedan disponibles desde el inicio; no se bloquean por recorrido guiado.
+- Cada juego se guarda una sola vez y luego queda únicamente en modo revisión.
+- Al completar todos los juegos asignados, el portal muestra resumen final y conserva acceso de solo lectura.
+- La evaluación completada continúa disponible en modo revisión y no genera nuevas preguntas.
+- Administración > Empleados incorpora Reiniciar evaluación, Reiniciar juegos y Reiniciar todo.
+- Reiniciar juegos elimina resultados y asignación del empleado para que reciba una nueva asignación con las reglas vigentes.
