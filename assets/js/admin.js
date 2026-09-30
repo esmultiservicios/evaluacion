@@ -121,7 +121,8 @@
     if(navigating){showNotify('info','Espera un momento: todavía se está procesando la acción anterior.');return}
     if(!form.checkValidity()){focusInvalidField(form);showNotify('danger','Completa los campos obligatorios marcados con * antes de continuar.');return}
     const modal=form.closest('.ui-modal');
-    const keepModal=!!(modal?.id&&String(form.elements?.id?.value||'').trim()!=='');
+    const actionName=String(form.elements?.action?.value||'').trim();
+    const keepModal=!!(modal?.id&&actionName.startsWith('save_'));
     const modalState=keepModal?{
       modalId:modal.id,
       formId:form.id||'',

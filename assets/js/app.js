@@ -81,7 +81,12 @@
         renderIdentityConfirmation(employee,resumeHint,completedHint);
       }
     }catch(_){/* Sin sesión activa: permanece en identificación. */}
-    finally{finishBoot();}
+    finally{
+      finishBoot();
+      if(!employee&&badge&&badge.offsetParent!==null){
+        setTimeout(()=>{try{badge.focus({preventScroll:true})}catch{badge.focus()}},80);
+      }
+    }
   }
   restoreParticipantOnLoad();
 })();

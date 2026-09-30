@@ -330,3 +330,25 @@ body.game-play-body .games-footer,body.games-identify-body .games-footer{flex:0 
 .games-hero-person>span:last-child{display:block;min-width:0}.games-hero-person strong,.games-hero-person small{display:block}.games-hero-person strong{color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.games-hero-person small{margin-top:3px;color:#d7edf2;font-size:10px;font-weight:700}
 @media(max-width:1100px){.games-hero-aside{width:300px!important}.games-hero-campaign{height:118px!important}}
 @media(max-width:760px){.games-hero-aside{width:100%!important}.games-hero-campaign{height:auto!important;min-height:112px!important}.games-hero-person{min-height:58px}}
+
+
+/* v9.11 · Restauración del botón Sonido y limpieza visual del navbar */
+.nav-actions .sound-toggle{
+  -webkit-appearance:none!important;appearance:none!important;
+  min-height:42px!important;height:42px!important;
+  border:1px solid #cde2e6!important;
+  background:#e4f1f3!important;
+  color:#174e65!important;
+  font:inherit!important;font-size:12.5px!important;font-weight:850!important;
+  padding:0 13px!important;border-radius:12px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+  box-shadow:none!important;outline:0!important;
+}
+.nav-actions .sound-toggle:hover,
+.nav-actions .sound-toggle:focus-visible{
+  background:#d5e9ed!important;border-color:#b9d8df!important;color:#123f59!important;
+  transform:translateY(-1px)!important;box-shadow:none!important;
+}
+@media(max-width:1050px){.nav-actions .sound-toggle{width:42px!important;padding:0!important}}
+@media(max-width:720px){.nav-actions .sound-toggle{width:36px!important;height:40px!important;min-height:40px!important}}
+@media(max-width:430px){.nav-actions .sound-toggle{display:none!important}}

@@ -607,3 +607,68 @@ html{font-size:16px}body.public-body{font-weight:550;-webkit-font-smoothing:auto
   .public-body.evaluation-active .public-shell,
   .public-body.evaluation-active .public-nav{width:min(1560px,calc(100% - 64px))!important;max-width:1560px!important}
 }
+
+
+/* v9.11 · Evaluación con la misma escala visual real de Juegos + Sonido restaurado */
+.public-nav-actions .sound-toggle{
+  -webkit-appearance:none!important;appearance:none!important;
+  min-height:42px!important;height:42px!important;
+  border:1px solid #cde2e6!important;background:#e4f1f3!important;color:#174e65!important;
+  font:inherit!important;font-size:12.5px!important;font-weight:850!important;
+  padding:0 13px!important;border-radius:12px!important;cursor:pointer!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+  box-shadow:none!important;outline:0!important;
+}
+.public-nav-actions .sound-toggle:hover,
+.public-nav-actions .sound-toggle:focus-visible{
+  background:#d5e9ed!important;border-color:#b9d8df!important;color:#123f59!important;
+  transform:translateY(-1px)!important;box-shadow:none!important;
+}
+
+@media (min-width:1100px){
+  /* Mismas medidas base que Juegos: navbar 1480, contenido 1480, separación 24px. */
+  .public-body.evaluation-active .public-nav{
+    width:min(1480px,calc(100% - 48px))!important;max-width:1480px!important;
+    min-height:76px!important;height:76px!important;padding:10px 24px!important;
+  }
+  .public-body.evaluation-active .public-shell{
+    width:min(1480px,calc(100% - 48px))!important;max-width:1480px!important;
+    margin:24px auto 32px!important;padding:0!important;
+  }
+  /* Card 1: saludo y métricos idénticos a Juegos. */
+  .public-body.evaluation-active .participant-welcome-row,
+  .public-body.evaluation-active .quiz-participant-bar{
+    min-height:100px!important;padding:20px 22px!important;margin:0 0 18px!important;
+    border-radius:22px!important;
+  }
+  .public-body.evaluation-active .participant-welcome-main h2,
+  .public-body.evaluation-active .participant-greeting{font-size:25px!important;line-height:1.12!important}
+  .public-body.evaluation-active .participant-welcome-main p{font-size:13px!important}
+  .public-body.evaluation-active .participant-progress-metrics>span{min-width:105px!important;padding:10px 13px!important}
+  .public-body.evaluation-active .participant-progress-metrics strong{font-size:17px!important}
+
+  /* Card 2: mismas dimensiones del hero de Juegos. */
+  .public-body.evaluation-active .evaluation-ready-hero{
+    min-height:300px!important;padding:38px 42px!important;border-radius:30px!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,390px)!important;gap:30px!important;
+  }
+  .public-body.evaluation-active .evaluation-ready-copy h3{
+    font-size:64px!important;line-height:1!important;letter-spacing:-.04em!important;margin:8px 0 10px!important;
+  }
+  .public-body.evaluation-active .evaluation-ready-subtitle{font-size:15px!important;line-height:1.4!important}
+  .public-body.evaluation-active .evaluation-ready-copy>p{font-size:14px!important;line-height:1.7!important;max-width:760px!important}
+  .public-body.evaluation-active .evaluation-ready-chips{margin-top:24px!important;gap:8px!important}
+  .public-body.evaluation-active .evaluation-ready-chips span{font-size:11px!important;padding:9px 12px!important}
+  .public-body.evaluation-active .evaluation-ready-aside{width:390px!important;max-width:390px!important;justify-self:end!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:138px!important}
+  .public-body.evaluation-active .evaluation-ready-person{min-height:62px!important}
+}
+@media (min-width:1500px){
+  .public-body.evaluation-active .public-nav,
+  .public-body.evaluation-active .public-shell{
+    width:min(1560px,calc(100% - 64px))!important;max-width:1560px!important;
+  }
+}
+@media(max-width:1050px){.public-nav-actions .sound-toggle{width:42px!important;padding:0!important}}
+@media(max-width:720px){.public-nav-actions .sound-toggle{width:36px!important;height:40px!important;min-height:40px!important}}
+@media(max-width:430px){.public-nav-actions .sound-toggle{display:none!important}}

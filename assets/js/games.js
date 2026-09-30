@@ -23,6 +23,10 @@
 
   $$('[data-game-change-participant]').forEach(link=>link.addEventListener('click',async e=>{e.preventDefault();const result=await Swal.fire({icon:'question',title:'¿Cambiar participante?',text:'Volverás a la identificación por gafete y saldrás de la sesión actual de juegos.',showCancelButton:true,confirmButtonText:'Sí, cambiar',cancelButtonText:'Cancelar',confirmButtonIcon:'check',cancelButtonIcon:'x',allowOutsideClick:false});if(result.isConfirmed)window.location.href=link.getAttribute('href')||'?change=1'}));
 
+  if(portalBadge&&portalBadge.offsetParent!==null){
+    setTimeout(()=>{try{portalBadge.focus({preventScroll:true})}catch{portalBadge.focus()}},80);
+  }
+
   const game=app.game;if(!game)return;sound=!!game.sound;let employee=app.employee||null,index=0,correct=0,itemStartedAt=0;const details=[];
   const welcome=$('[data-welcome]'),challenge=$('[data-challenge]'),finish=$('[data-finish]'),bar=$('[data-progress-bar]'),label=$('[data-progress-label]'),score=$('[data-score]'),startBtn=$('[data-start-game]'),totalTimerEl=$('[data-game-total-timer]');
   if(app.review){renderReview();return}
