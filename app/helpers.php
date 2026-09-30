@@ -101,11 +101,18 @@ function ensure_runtime_schema(): void {
         $ensureColumn('game_attempts','accuracy_score',"DECIMAL(6,2) NOT NULL DEFAULT 0 AFTER employee_name_snapshot");
         $ensureColumn('game_attempts','speed_score',"DECIMAL(6,2) NOT NULL DEFAULT 0 AFTER accuracy_score");
         $ensureColumn('game_attempts','response_seconds',"DECIMAL(10,3) NOT NULL DEFAULT 0 AFTER total_items");
+        // v8.8: grupos de contenido y preferencias persistentes.
+        $ensureColumn('questions','group_name',"VARCHAR(120) NULL AFTER time_limit_seconds");
+        $ensureColumn('games','group_name',"VARCHAR(120) NULL AFTER category");
+        $ensureColumn('employees','question_group',"VARCHAR(120) NULL AFTER department");
+        $ensureColumn('employees','game_group',"VARCHAR(120) NULL AFTER question_group");
+        db()->exec("CREATE TABLE IF NOT EXISTS content_groups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL UNIQUE, description VARCHAR(500) NULL, active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("CREATE TABLE IF NOT EXISTS user_preferences (user_id BIGINT UNSIGNED NOT NULL, pref_key VARCHAR(120) NOT NULL, pref_value VARCHAR(255) NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY(user_id,pref_key), CONSTRAINT fk_up_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $gameCount=(int)db()->query("SELECT COUNT(*) FROM games")->fetchColumn();
-        if($gameCount===0){
+        if($gameCount===0 && setting('game_seed_initialized','0')!=='1'){
           $games=game_seed_data();$ins=db()->prepare("INSERT INTO games(title,slug,game_type,category,difficulty,intro,content_json,active,sound_enabled,sort_order) VALUES(?,?,?,?,?,?,?,1,1,?)");
-          foreach($games as $i=>$g)$ins->execute([$g['title'],$g['slug'],$g['type'],'Ciberseguridad',$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$i+1]);
-        }
+          foreach($games as $i=>$g)$ins->execute([$g['title'],$g['slug'],$g['type'],'Ciberseguridad',$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$i+1]);set_setting('game_seed_initialized','1');
+        }elseif($gameCount>0 && setting('game_seed_initialized','0')!=='1'){set_setting('game_seed_initialized','1');}
         // v8.2: mejora los 8 juegos base ya instalados sin tocar juegos personalizados.
         if(setting('game_content_schema','1')!=='3'){
           $findBase=db()->prepare('SELECT id FROM games WHERE slug=? LIMIT 1');

@@ -193,3 +193,11 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - La evaluación completada continúa disponible en modo revisión y no genera nuevas preguntas.
 - Administración > Empleados incorpora Reiniciar evaluación, Reiniciar juegos y Reiniciar todo.
 - Reiniciar juegos elimina resultados y asignación del empleado para que reciba una nueva asignación con las reglas vigentes.
+
+## v8.8 — administración masiva, grupos y dashboard
+- Reinicio global de participaciones desde Empleados y limpieza separada de resultados desde Reportes.
+- Eliminación masiva protegida con palabra de confirmación `ELIMINAR`.
+- Acciones globales para desactivar/eliminar preguntas y juegos.
+- Grupos/campañas para preguntas y juegos. Cada empleado puede recibir un grupo de preguntas y un grupo de juegos; al cambiar de grupo se libera la participación anterior de ese módulo para recibir el nuevo contenido.
+- Preferencia Detalle/Miniatura persistida en base de datos por usuario; en móvil se fuerza Miniatura.
+- Exportación Excel/PDF en Participaciones recientes y gráficas comparativas de Evaluaciones/Juegos.

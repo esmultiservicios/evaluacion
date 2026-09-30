@@ -56,14 +56,15 @@ try{
     $count=max(1,min(500,(int)setting('questions_per_attempt','5')));
     $orderMode=setting('question_order_mode','random');
     $orderSql=$orderMode==='sequential'?'q.id ASC':'RAND()';
-    $validSql="SELECT COUNT(*) FROM questions q WHERE q.active=1 AND q.id IN (
+    $group=(string)($emp['question_group']??'');$groupWhere=$group!==''?" AND q.group_name=".$pdo->quote($group):'';
+    $validSql="SELECT COUNT(*) FROM questions q WHERE q.active=1".$groupWhere." AND q.id IN (
       SELECT qo.question_id FROM question_options qo JOIN questions q2 ON q2.id=qo.question_id
       GROUP BY qo.question_id,q2.question_type,q2.required_selections
       HAVING COUNT(*)>=2 AND ((q2.question_type='single' AND SUM(qo.is_correct=1)=1) OR (q2.question_type='multiple' AND SUM(qo.is_correct=1)=GREATEST(1,q2.required_selections)))
     )";
     $validCount=(int)$pdo->query($validSql)->fetchColumn();
     if($validCount<$count) throw new RuntimeException('El banco de preguntas no está listo. Hay '.$validCount.' pregunta'.($validCount===1?'':'s').' publicada'.($validCount===1?'':'s').' y válida'.($validCount===1?'':'s').', pero la evaluación está configurada para '.$count.'. Publica al menos '.$count.' preguntas válidas desde Administración > Preguntas.');
-    $qs=$pdo->query("SELECT q.id,q.question_text,q.points,q.question_type,q.required_selections,q.time_limit_seconds FROM questions q WHERE q.active=1 AND q.id IN (
+    $qs=$pdo->query("SELECT q.id,q.question_text,q.points,q.question_type,q.required_selections,q.time_limit_seconds FROM questions q WHERE q.active=1".$groupWhere." AND q.id IN (
       SELECT qo.question_id FROM question_options qo JOIN questions q2 ON q2.id=qo.question_id
       GROUP BY qo.question_id,q2.question_type,q2.required_selections
       HAVING COUNT(*)>=2 AND ((q2.question_type='single' AND SUM(qo.is_correct=1)=1) OR (q2.question_type='multiple' AND SUM(qo.is_correct=1)=GREATEST(1,q2.required_selections)))
