@@ -516,13 +516,50 @@ body.admin-loading .admin-topbar:after{content:"";position:absolute;left:0;right
 .admin-body .speed-scoring-box .premium-switch b{min-width:48px;color:#244f61;font-weight:900}
 @media(max-width:520px){.admin-body .ui-modal{padding:7px!important}.admin-body .ui-modal-card{max-height:calc(100dvh - 14px)!important}.admin-body .ui-modal-card>.modal-head{padding:14px}.admin-body .ui-modal-card>form{padding:14px 14px 0}.admin-body .ui-modal-card>form>.modal-actions{margin:14px -14px 0!important;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.admin-body .speed-scoring-box{align-items:flex-start;flex-direction:column}.admin-body .speed-scoring-box .premium-switch{width:100%;justify-content:space-between}}
 
-/* v8.9.1 · Select2 uniforme y vista Detalle de categorías */
-.admin-body .group-record:has(.record-action-menu[open]){z-index:70}
-.admin-body .record-grid.view-mini .group-record .record-action-menu{justify-self:end;align-self:end}
-.admin-body .record-grid.view-detail .group-record{grid-template-columns:minmax(260px,1.15fr) minmax(390px,1fr) auto;padding:13px 14px;gap:14px;align-items:center}
-.admin-body .record-grid.view-detail .group-record .record-meta{grid-template-columns:repeat(4,minmax(90px,1fr))}
-.admin-body .record-grid.view-detail .group-record .record-action-menu{justify-self:end;align-self:center}
-.admin-body label>.s2-container{width:100%!important}
-.admin-body .form-grid label>.s2-container,.admin-body .question-form label>.s2-container{display:block}
-@media(max-width:960px){.admin-body .record-grid.view-detail .group-record{grid-template-columns:minmax(0,1fr) auto}.admin-body .record-grid.view-detail .group-record .record-meta{grid-column:1/-1;grid-row:2}.admin-body .record-grid.view-detail .group-record .record-action-menu{grid-column:2;grid-row:1}}
-@media(max-width:560px){.admin-body .record-grid.view-detail .group-record{display:flex;flex-direction:column;align-items:stretch;gap:11px;padding:14px}.admin-body .record-grid.view-detail .group-record .record-meta{grid-template-columns:1fr 1fr}.admin-body .record-grid.view-detail .group-record .record-action-menu,.admin-body .record-grid.view-detail .group-record .record-action-menu>summary{width:100%}}
+/* v8.9.1 · Categorías: vista detalle real y consistente */
+[data-list="groups"] .record-grid.view-detail{grid-template-columns:1fr}
+[data-list="groups"] .record-grid.view-detail .record-card{display:grid;grid-template-columns:minmax(260px,1.2fr) minmax(360px,1fr) auto;gap:14px;align-items:center;padding:13px 14px}
+[data-list="groups"] .record-grid.view-detail .record-meta{grid-template-columns:repeat(4,minmax(90px,1fr))}
+[data-list="groups"] .record-grid.view-detail .record-action-menu{justify-self:end}
+@media(max-width:900px){[data-list="groups"] .record-grid.view-detail .record-card{grid-template-columns:minmax(0,1fr) auto}[data-list="groups"] .record-grid.view-detail .record-meta{grid-column:1/-1;grid-row:2}[data-list="groups"] .record-grid.view-detail .record-action-menu{grid-column:2;grid-row:1}}
+@media(max-width:767px){[data-list="groups"] .record-grid.view-detail .record-card{display:grid;grid-template-columns:1fr;padding:14px}[data-list="groups"] .record-grid.view-detail .record-meta{grid-template-columns:repeat(2,minmax(0,1fr))}[data-list="groups"] .record-grid.view-detail .record-action-menu{grid-column:auto;grid-row:auto;justify-self:stretch}}
+
+/* v8.9.2 · Select2 real en categorías + separación de configuración + acciones de usuarios */
+.admin-body label>.s2-container,
+.admin-body .form-grid label>.s2-container,
+.admin-body .question-form label>.s2-container{width:100%!important;margin-top:7px!important}
+.admin-body .s2-container.open{z-index:120}
+.admin-body .s2-selection{background:#fff;color:#17364f}
+.admin-body .s2-selection:hover{color:#17364f;background:#fff}
+.admin-body .s2-option:hover{color:#0b5f6d;background:#eef7f8}
+.admin-body .s2-option.selected{color:#fff;background:var(--navy)}
+
+.admin-body .speed-scoring-box{margin-top:24px!important;padding:18px!important;gap:24px!important;min-height:92px!important}
+.admin-body .speed-scoring-box>div{min-width:0;flex:1 1 auto;padding-right:8px}
+.admin-body .speed-scoring-box .premium-switch{min-width:150px!important;padding:10px 13px!important;gap:10px!important}
+.admin-body .speed-bonus-field{display:block!important;margin-top:20px!important;padding-top:2px}
+.admin-body .speed-bonus-field>input{margin-top:7px!important}
+
+.user-record:has(.record-action-menu[open]){z-index:70}
+.record-grid.view-detail .user-record{grid-template-columns:minmax(270px,1.2fr) minmax(360px,1fr) auto;padding:13px 14px;gap:14px;align-items:center}
+.record-grid.view-detail .user-record .record-meta{grid-template-columns:repeat(3,minmax(100px,1fr))}
+.record-grid.view-detail .user-record .user-action-menu{justify-self:end;align-self:center}
+.action-menu-note{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:9px;background:#f4f8fa;color:#617b8d;font-size:11px;font-weight:800}
+.action-menu-note .ui-icon{width:15px;height:15px;color:#0b6c78}
+@media(max-width:900px){
+  .record-grid.view-detail .user-record{grid-template-columns:minmax(0,1fr) auto}
+  .record-grid.view-detail .user-record .record-meta{grid-column:1/-1;grid-row:2}
+  .record-grid.view-detail .user-record .user-action-menu{grid-column:2;grid-row:1}
+}
+@media(max-width:767px){
+  .record-grid.view-detail .user-record{display:flex;flex-direction:column;align-items:stretch;gap:11px;padding:14px}
+  .record-grid.view-detail .user-record .record-primary,.record-grid.view-detail .user-record .record-meta,.record-grid.view-detail .user-record .user-action-menu{width:100%}
+  .record-grid.view-detail .user-record .record-meta{grid-template-columns:1fr}
+  .record-grid.view-detail .user-record .user-action-menu{align-self:stretch;justify-self:stretch}
+  .record-grid.view-detail .user-record .user-action-menu>summary{width:100%}
+}
+@media(max-width:520px){
+  .admin-body .speed-scoring-box{padding:15px!important;gap:14px!important}
+  .admin-body .speed-scoring-box>div{padding-right:0}
+  .admin-body .speed-scoring-box .premium-switch{width:100%;min-width:0!important}
+}

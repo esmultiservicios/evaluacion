@@ -202,10 +202,12 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - Preferencia Detalle/Miniatura persistida en base de datos por usuario; en móvil se fuerza Miniatura.
 - Exportación Excel/PDF en Participaciones recientes y gráficas comparativas de Evaluaciones/Juegos.
 
-## Actualización v8.9.1 — Select2 y categorías uniformes
-- Categoría/campaña de Empleados, Preguntas y Juegos ahora utiliza Select2 local real, con búsqueda y dropdown por encima de los modales.
-- El constructor de Juegos deja un único selector de Categoría/campaña; se elimina la duplicidad visual entre “Categoría” y “Grupo/campaña”.
-- Los Select2 sincronizan correctamente su valor al crear, editar, resetear formularios y navegar sin recarga completa.
-- Categorías/campañas recupera Vista Detalle/Miniatura con preferencia persistente y comportamiento responsive.
-- Categorías/campañas incorpora exportación Excel y PDF.
-- El exportador de Juegos muestra una sola columna “Categoría / campaña”.
+## v8.9.2 · Select2 de categorías, configuración y acciones de usuarios
+
+- Todos los `<select>` del panel administrativo pasan por Select2 local, incluyendo formularios, modales, paginación y navegación dinámica.
+- Empleados: `Categoría / campaña` ahora es un Select2 alimentado por las categorías creadas y conserva la selección al editar.
+- Preguntas: la categoría/campaña ahora se selecciona desde Select2 y se restaura correctamente al editar.
+- Juegos: la categoría/campaña ahora se selecciona desde Select2; el valor se sincroniza con `group_name` para que la asignación por campaña y el portal utilicen la misma categoría.
+- Importación de juegos: conserva/sincroniza `group_name` al crear o actualizar registros.
+- Configuración: se aumentó la separación visual de `Puntuación por rapidez`, su interruptor y el campo del bono máximo.
+- Usuarios: tanto en vista Detalle como Miniatura se usa `Acciones` con Editar, Activar/Desactivar y Eliminar. La sesión actual y el último administrador activo están protegidos.

@@ -5,12 +5,12 @@ final class GameExportService
 {
     public function rows(): array
     {
-        $sql="SELECT g.id,g.title,g.game_type,g.category,g.group_name,g.difficulty,g.intro,g.time_limit_seconds,g.active,g.sound_enabled,g.created_at,
+        $sql="SELECT g.id,g.title,g.game_type,g.category,g.difficulty,g.intro,g.time_limit_seconds,g.active,g.sound_enabled,g.created_at,
                      COUNT(a.id) attempts,
                      COALESCE(AVG(CASE WHEN a.completed_at IS NOT NULL THEN a.score END),0) average_score
               FROM games g
               LEFT JOIN game_attempts a ON a.game_id=g.id AND a.completed_at IS NOT NULL
-              GROUP BY g.id,g.title,g.game_type,g.category,g.group_name,g.difficulty,g.intro,g.time_limit_seconds,g.active,g.sound_enabled,g.created_at
+              GROUP BY g.id,g.title,g.game_type,g.category,g.difficulty,g.intro,g.time_limit_seconds,g.active,g.sound_enabled,g.created_at
               ORDER BY g.sort_order,g.id";
         return db()->query($sql)->fetchAll();
     }
@@ -19,10 +19,10 @@ final class GameExportService
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['ID','Juego','Motor','Categoría / campaña','Dificultad','Introducción','Tiempo (s)','Estado','Sonido','Partidas','Promedio','Creado']];
+        $all=[['ID','Juego','Motor','Categoría','Dificultad','Introducción','Tiempo (s)','Estado','Sonido','Partidas','Promedio','Creado']];
         foreach($rows as $r){
             $all[]=[
-                (string)$r['id'],(string)$r['title'],(string)$r['game_type'],(string)($r['group_name']?:$r['category']),(string)$r['difficulty'],(string)($r['intro']??''),(string)($r['time_limit_seconds']??0),
+                (string)$r['id'],(string)$r['title'],(string)$r['game_type'],(string)$r['category'],(string)$r['difficulty'],(string)($r['intro']??''),(string)($r['time_limit_seconds']??0),
                 (int)$r['active']===1?'Activo':'Inactivo',(int)$r['sound_enabled']===1?'Activo':'Silencio',(string)$r['attempts'],
                 number_format((float)$r['average_score'],1,'.','').'%',(string)$r['created_at']
             ];
@@ -64,8 +64,8 @@ final class GameExportService
     private function outputExcelFallback(): never
     {
         $rows=$this->rows();header('Content-Type: application/vnd.ms-excel; charset=UTF-8');header('Content-Disposition: attachment; filename="juegos-'.date('Ymd-His').'.xls"');echo "\xEF\xBB\xBF";
-        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left}</style></head><body><h2>Juegos</h2><table><thead><tr><th>ID</th><th>Juego</th><th>Motor</th><th>Categoría / campaña</th><th>Dificultad</th><th>Introducción</th><th>Tiempo (s)</th><th>Estado</th><th>Sonido</th><th>Partidas</th><th>Promedio</th></tr></thead><tbody>';
-        foreach($rows as $r){$vals=[$r['id'],$r['title'],$r['game_type'],($r['group_name']?:$r['category']),$r['difficulty'],$r['intro']??'',$r['time_limit_seconds']??0,(int)$r['active']===1?'Activo':'Inactivo',(int)$r['sound_enabled']===1?'Activo':'Silencio',$r['attempts'],number_format((float)$r['average_score'],1).'%'];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}
+        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left}</style></head><body><h2>Juegos</h2><table><thead><tr><th>ID</th><th>Juego</th><th>Motor</th><th>Categoría</th><th>Dificultad</th><th>Introducción</th><th>Tiempo (s)</th><th>Estado</th><th>Sonido</th><th>Partidas</th><th>Promedio</th></tr></thead><tbody>';
+        foreach($rows as $r){$vals=[$r['id'],$r['title'],$r['game_type'],$r['category'],$r['difficulty'],$r['intro']??'',$r['time_limit_seconds']??0,(int)$r['active']===1?'Activo':'Inactivo',(int)$r['sound_enabled']===1?'Activo':'Silencio',$r['attempts'],number_format((float)$r['average_score'],1).'%'];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}
         echo '</tbody></table></body></html>';exit;
     }
     private function ascii(string $s): string{$x=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$s);return $x===false?$s:$x;}
