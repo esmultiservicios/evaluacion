@@ -14,6 +14,14 @@
   const openModal=id=>{const modal=d.getElementById(id);if(!modal)return;modal.classList.add('open');modal.setAttribute('aria-hidden','false');d.body.style.overflow='hidden';activeModal=modal;focusFirstField(modal,70)};
   const closeModal=modal=>{if(!modal)return;modal.classList.remove('open');modal.setAttribute('aria-hidden','true');if(activeModal===modal)activeModal=null;if(!$('.ui-modal.open'))d.body.style.overflow=''};
   const resultIcon=type=>type==='Empleado'?'EM':(type==='Pregunta'?'PR':'US');
+  function initNumericBadges(root=d){
+    $$('input[name="badge"]',root).forEach(input=>{
+      if(input.dataset.numericBadgeReady)return;input.dataset.numericBadgeReady='1';
+      input.setAttribute('inputmode','numeric');input.setAttribute('pattern','[0-9]+');
+      input.addEventListener('input',()=>{const clean=input.value.replace(/\D+/g,'');if(input.value!==clean){input.value=clean;showNotify('warning','El gafete solo puede contener números.')}});
+      input.addEventListener('paste',e=>{const text=(e.clipboardData||window.clipboardData)?.getData('text')||'';if(text&&!/^\d+$/.test(text.trim())){e.preventDefault();showNotify('warning','El gafete solo puede contener números.')}});
+    });
+  }
 
   function parseNotify(html){
     const m=html.match(/window\.PAGE_NOTIFY=(\{.*?\}|null);<\/script>/s);if(!m||m[1]==='null')return null;
@@ -72,9 +80,20 @@
     });
   }
 
+
+  function initQuestionForm(root=d){
+    const form=$('#questionForm',root);if(!form||form.dataset.questionReady)return;form.dataset.questionReady='1';
+    const type=form.elements.question_type,wrap=$('[data-required-selections-wrap]',form),required=form.elements.required_selections,checks=$$('input[data-correct-option]',form),help=$('[data-question-correct-help]',form);
+    const sync=()=>{const multiple=type?.value==='multiple';wrap?.classList.toggle('hidden',!multiple);if(required){required.disabled=!multiple;if(!multiple)required.value='1';else if(Number(required.value)<2)required.value='2'}checks.forEach(c=>{c.type='checkbox'});if(help)help.lastChild.textContent=multiple?' Marca exactamente '+Number(required?.value||2)+' respuestas correctas.':' Marca una sola respuesta correcta.'};
+    type?.addEventListener('change',()=>{if(type.value==='single'){let kept=false;checks.forEach(c=>{if(c.checked&&!kept)kept=true;else c.checked=false})}sync()});
+    required?.addEventListener('input',sync);
+    checks.forEach(c=>c.addEventListener('change',()=>{if(type?.value!=='multiple'&&c.checked)checks.forEach(other=>{if(other!==c)other.checked=false});sync()}));
+    sync();
+  }
+
   function initPage(root=d){
     $$('.ui-modal',root).forEach(modal=>{if(modal.parentElement!==d.body){modal.dataset.adminDynamic='1';d.body.appendChild(modal)}});
-    initMail(root);initLists(root);initDropZones(root);initCounters(root);initGameRules(root);window.UI?.enhanceSelects(root);window.UI?.enhancePasswords(root);window.EvalFullscreen?.sync();
+    initMail(root);initLists(root);initDropZones(root);initCounters(root);initGameRules(root);initQuestionForm(root);window.UI?.enhanceSelects(root);window.UI?.enhancePasswords(root);window.EvalFullscreen?.sync();
     const pageForm=$('.content-wrap > form, .content-wrap .email-layout form',root);if(pageForm&&!$('.ui-modal.open',root))focusFirstField(pageForm,110);
   }
 
@@ -149,10 +168,10 @@
   function editEmployee(btn){const form=$('#employeeForm');if(!form)return;const x=JSON.parse(btn.dataset.editEmployee||'{}');form.elements.id.value=x.id||'';form.elements.badge.value=x.badge||'';form.elements.name.value=x.name||'';form.elements.department.value=x.department||'';form.elements.email.value=x.email||'';form.elements.status.value=x.status||'active';form.elements.status.dispatchEvent(new Event('change',{bubbles:true}));$('[data-employee-modal-title]')?.replaceChildren(d.createTextNode('Editar empleado'));openModal('employeeModal')}
   function resetUser(){const form=$('#userForm');if(!form)return;form.reset();form.elements.id.value='';form.elements.password.required=true;$$('.new-only',form).forEach(x=>x.classList.remove('hidden'));$('[data-password-help]',form).textContent='Mínimo 8 caracteres.';$('[data-user-modal-title]')?.replaceChildren(d.createTextNode('Nuevo usuario'));['role','status'].forEach(n=>form.elements[n]?.dispatchEvent(new Event('change',{bubbles:true})))}
   function editUser(btn){const form=$('#userForm');if(!form)return;const x=JSON.parse(btn.dataset.editUser||'{}');form.reset();form.elements.id.value=x.id||'';form.elements.name.value=x.name||'';form.elements.email.value=x.email||'';form.elements.role.value=x.role||'manager';form.elements.status.value=x.status||'active';form.elements.password.value='';form.elements.password.required=false;$$('.new-only',form).forEach(el=>el.classList.add('hidden'));$('[data-password-help]',form).textContent='Déjala vacía para conservar la contraseña actual.';['role','status'].forEach(n=>form.elements[n]?.dispatchEvent(new Event('change',{bubbles:true})));$('[data-user-modal-title]')?.replaceChildren(d.createTextNode('Editar usuario'));openModal('userModal')}
-  function resetQuestion(){const form=$('#questionForm');if(!form)return;form.reset();form.elements.id.value='';form.elements.points.value='1';form.elements.active.checked=true;$$('input[name=correct_index]',form).forEach(r=>r.checked=false);$$('input[name="options[]"]',form).forEach((o,i)=>{o.value='';o.placeholder='Opción '+(i+1)});$('[data-question-modal-title]')?.replaceChildren(d.createTextNode('Nueva pregunta'))}
-  function editQuestion(btn){const form=$('#questionForm');if(!form)return;const x=JSON.parse(btn.dataset.editQuestion||'{}');resetQuestion();form.elements.id.value=x.id||'';form.elements.question_text.value=x.text||'';form.elements.points.value=x.points||1;form.elements.active.checked=!!Number(x.active);const opts=$$('input[name="options[]"]',form),radios=$$('input[name=correct_index]',form);(x.options||[]).forEach((o,i)=>{if(opts[i])opts[i].value=o.option_text||''});if(radios[x.correct_index??0])radios[x.correct_index??0].checked=true;$('[data-question-modal-title]')?.replaceChildren(d.createTextNode('Editar pregunta'));openModal('questionModal')}
-  function previewQuestion(btn){const x=JSON.parse(btn.dataset.previewQuestion||'{}'),root=$('[data-preview-content]');if(root)root.innerHTML=`<div class="preview-shell"><span class="preview-number">PREGUNTA ${esc(x.id||'')}</span><h3>${esc(x.text||'')}</h3><div>${(x.options||[]).map((o,i)=>`<div class="preview-option ${i===Number(x.correct_index)?'correct':''}"><i></i><span>${esc(o.option_text||'')}</span>${i===Number(x.correct_index)?'<small class="preview-correct">Correcta</small>':''}</div>`).join('')}</div></div>`;openModal('questionPreviewModal')}
-  function resetGame(){const form=$('#gameForm');if(!form)return;form.reset();form.querySelector('[name=id]').value='';form.querySelector('[name=active]').checked=true;form.querySelector('[name=sound_enabled]').checked=true;$('[data-game-modal-title]').textContent='Nuevo juego'}
+  function resetQuestion(){const form=$('#questionForm');if(!form)return;form.reset();form.elements.id.value='';form.elements.points.value='1';form.elements.time_limit_seconds.value='0';form.elements.question_type.value='single';form.elements.required_selections.value='1';form.elements.active.checked=true;$$('input[data-correct-option]',form).forEach(r=>r.checked=false);$$('input[name="options[]"]',form).forEach((o,i)=>{o.value='';o.placeholder='Opción '+(i+1)});form.elements.question_type.dispatchEvent(new Event('change',{bubbles:true}));$('[data-question-modal-title]')?.replaceChildren(d.createTextNode('Nueva pregunta'))}
+  function editQuestion(btn){const form=$('#questionForm');if(!form)return;const x=JSON.parse(btn.dataset.editQuestion||'{}');resetQuestion();form.elements.id.value=x.id||'';form.elements.question_text.value=x.text||'';form.elements.points.value=x.points||1;form.elements.time_limit_seconds.value=x.time_limit_seconds||0;form.elements.question_type.value=x.question_type||'single';form.elements.required_selections.value=x.required_selections||1;form.elements.active.checked=!!Number(x.active);const opts=$$('input[name="options[]"]',form),checks=$$('input[data-correct-option]',form);(x.options||[]).forEach((o,i)=>{if(opts[i])opts[i].value=o.option_text||''});(x.correct_indices||[x.correct_index??0]).forEach(i=>{if(checks[Number(i)])checks[Number(i)].checked=true});form.elements.question_type.dispatchEvent(new Event('change',{bubbles:true}));$('[data-question-modal-title]')?.replaceChildren(d.createTextNode('Editar pregunta'));openModal('questionModal')}
+  function previewQuestion(btn){const x=JSON.parse(btn.dataset.previewQuestion||'{}'),root=$('[data-preview-content]'),corrects=(x.correct_indices||[x.correct_index??0]).map(Number);if(root)root.innerHTML=`<div class="preview-shell"><span class="preview-number">PREGUNTA ${esc(x.id||'')} · ${x.question_type==='multiple'?'SELECCIÓN MÚLTIPLE':'UNA RESPUESTA'}${Number(x.time_limit_seconds||0)>0?' · '+Number(x.time_limit_seconds)+' s':''}</span><h3>${esc(x.text||'')}</h3><div>${(x.options||[]).map((o,i)=>`<div class="preview-option ${corrects.includes(i)?'correct':''}"><i></i><span>${esc(o.option_text||'')}</span>${corrects.includes(i)?'<small class="preview-correct">Correcta</small>':''}</div>`).join('')}</div></div>`;openModal('questionPreviewModal')}
+  function resetGame(){const form=$('#gameForm');if(!form)return;form.reset();form.querySelector('[name=id]').value='';form.querySelector('[name=active]').checked=true;form.querySelector('[name=sound_enabled]').checked=true;if(form.elements.time_limit_seconds)form.elements.time_limit_seconds.value='0';$('[data-game-modal-title]').textContent='Nuevo juego'}
   function editGame(btn){const form=$('#gameForm');if(!form)return;const g=JSON.parse(btn.dataset.editGame||'{}');Object.entries(g).forEach(([k,v])=>{const el=form.elements[k];if(!el)return;if(el.type==='checkbox')el.checked=String(v)==='1';else el.value=v??'';});$('[data-game-modal-title]').textContent='Editar juego';openModal('gameModal')}
 
   d.addEventListener('click',async e=>{

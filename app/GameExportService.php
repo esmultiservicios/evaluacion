@@ -5,12 +5,12 @@ final class GameExportService
 {
     public function rows(): array
     {
-        $sql="SELECT g.id,g.title,g.game_type,g.category,g.difficulty,g.intro,g.active,g.sound_enabled,g.created_at,
+        $sql="SELECT g.id,g.title,g.game_type,g.category,g.difficulty,g.intro,g.time_limit_seconds,g.active,g.sound_enabled,g.created_at,
                      COUNT(a.id) attempts,
                      COALESCE(AVG(CASE WHEN a.completed_at IS NOT NULL THEN a.score END),0) average_score
               FROM games g
               LEFT JOIN game_attempts a ON a.game_id=g.id AND a.completed_at IS NOT NULL
-              GROUP BY g.id,g.title,g.game_type,g.category,g.difficulty,g.intro,g.active,g.sound_enabled,g.created_at
+              GROUP BY g.id,g.title,g.game_type,g.category,g.difficulty,g.intro,g.time_limit_seconds,g.active,g.sound_enabled,g.created_at
               ORDER BY g.sort_order,g.id";
         return db()->query($sql)->fetchAll();
     }
@@ -19,10 +19,10 @@ final class GameExportService
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['ID','Juego','Motor','Categoría','Dificultad','Introducción','Estado','Sonido','Partidas','Promedio','Creado']];
+        $all=[['ID','Juego','Motor','Categoría','Dificultad','Introducción','Tiempo (s)','Estado','Sonido','Partidas','Promedio','Creado']];
         foreach($rows as $r){
             $all[]=[
-                (string)$r['id'],(string)$r['title'],(string)$r['game_type'],(string)$r['category'],(string)$r['difficulty'],(string)($r['intro']??''),
+                (string)$r['id'],(string)$r['title'],(string)$r['game_type'],(string)$r['category'],(string)$r['difficulty'],(string)($r['intro']??''),(string)($r['time_limit_seconds']??0),
                 (int)$r['active']===1?'Activo':'Inactivo',(int)$r['sound_enabled']===1?'Activo':'Silencio',(string)$r['attempts'],
                 number_format((float)$r['average_score'],1,'.','').'%',(string)$r['created_at']
             ];
@@ -42,7 +42,7 @@ final class GameExportService
         $zip->addFromString('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
         $zip->addFromString('xl/styles.xml','<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B315B"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="1" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>');
         $last=max(1,count($all));
-        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="8" customWidth="1"/><col min="2" max="2" width="34" customWidth="1"/><col min="3" max="5" width="20" customWidth="1"/><col min="6" max="6" width="46" customWidth="1"/><col min="7" max="11" width="16" customWidth="1"/></cols><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:K'.$last.'"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews></worksheet>');
+        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="8" customWidth="1"/><col min="2" max="2" width="34" customWidth="1"/><col min="3" max="5" width="20" customWidth="1"/><col min="6" max="6" width="46" customWidth="1"/><col min="7" max="12" width="16" customWidth="1"/></cols><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:L'.$last.'"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews></worksheet>');
         $zip->close();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="juegos-'.date('Ymd-His').'.xlsx"');
@@ -64,8 +64,8 @@ final class GameExportService
     private function outputExcelFallback(): never
     {
         $rows=$this->rows();header('Content-Type: application/vnd.ms-excel; charset=UTF-8');header('Content-Disposition: attachment; filename="juegos-'.date('Ymd-His').'.xls"');echo "\xEF\xBB\xBF";
-        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left}</style></head><body><h2>Juegos</h2><table><thead><tr><th>ID</th><th>Juego</th><th>Motor</th><th>Categoría</th><th>Dificultad</th><th>Introducción</th><th>Estado</th><th>Sonido</th><th>Partidas</th><th>Promedio</th></tr></thead><tbody>';
-        foreach($rows as $r){$vals=[$r['id'],$r['title'],$r['game_type'],$r['category'],$r['difficulty'],$r['intro']??'',(int)$r['active']===1?'Activo':'Inactivo',(int)$r['sound_enabled']===1?'Activo':'Silencio',$r['attempts'],number_format((float)$r['average_score'],1).'%'];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}
+        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left}</style></head><body><h2>Juegos</h2><table><thead><tr><th>ID</th><th>Juego</th><th>Motor</th><th>Categoría</th><th>Dificultad</th><th>Introducción</th><th>Tiempo (s)</th><th>Estado</th><th>Sonido</th><th>Partidas</th><th>Promedio</th></tr></thead><tbody>';
+        foreach($rows as $r){$vals=[$r['id'],$r['title'],$r['game_type'],$r['category'],$r['difficulty'],$r['intro']??'',$r['time_limit_seconds']??0,(int)$r['active']===1?'Activo':'Inactivo',(int)$r['sound_enabled']===1?'Activo':'Silencio',$r['attempts'],number_format((float)$r['average_score'],1).'%'];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}
         echo '</tbody></table></body></html>';exit;
     }
     private function ascii(string $s): string{$x=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$s);return $x===false?$s:$x;}

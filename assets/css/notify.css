@@ -2,3 +2,6 @@
 
 /* Las notificaciones deben verse incluso con un modal abierto. */
 .notify-stack{z-index:22000}
+
+/* v8.7 · la notificación siempre queda por encima de cualquier modal */
+.notify-stack{z-index:60000!important}

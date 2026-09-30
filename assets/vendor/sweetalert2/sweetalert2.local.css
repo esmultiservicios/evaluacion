@@ -5,3 +5,6 @@
 
 /* Confirmaciones por encima de cualquier modal administrativo. */
 .swal2-local-backdrop{z-index:25000}
+
+/* v8.7 · confirmaciones por encima del modal administrativo, debajo de showNotify */
+.swal2-local-backdrop{z-index:50000!important}

@@ -172,3 +172,15 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - Los valores se validan en vivo para el resumen, pero solo se normalizan al salir del campo, cambiar la regla o guardar.
 - Al enfocar un campo numérico de estas reglas se selecciona su contenido para que escribir un nuevo número reemplace el anterior, evitando concatenaciones como `8` → `85`.
 - Se mantiene la validación del backend: nunca se guardará una cantidad menor a 1 ni mayor a los juegos realmente asignables/publicados.
+
+## v8.7.0 · Evaluación y juegos con resultados definitivos
+- Gafetes exclusivamente numéricos en captura manual, portal, evaluación, juegos e importación.
+- Preguntas de una respuesta o selección múltiple con cantidad requerida configurable.
+- Tiempo límite opcional por pregunta y por juego (`0` = sin límite).
+- Puntuación opcional por rapidez desde Configuración; la rapidez solo bonifica respuestas correctas y los reportes priorizan aciertos y luego menor tiempo.
+- Sin revelar aciertos/errores durante la participación: el detalle aparece únicamente en el resumen final.
+- Respuestas definitivas: al avanzar no se puede volver a corregir; participaciones completadas quedan en modo revisión.
+- Juegos de hotspots, ordenamiento y relación permiten completar la acción aunque esté incorrecta; el resultado se evalúa al final.
+- Reportes consolidados por persona con evaluación, juegos, aciertos, promedio y tiempo total.
+- Mensajes `showNotify` y confirmaciones siempre por encima de los modales.
+- Contenido base más intuitivo: términos técnicos explicados, ejemplo legítimo de RRHH con `lear.com`, phishing claramente diferenciado y un tercer reto en “Encuentra los errores”.

@@ -18,9 +18,9 @@ $favicon = site_favicon();
     <link rel="icon" href="<?=e($favicon)?>">
     <link rel="shortcut icon" href="<?=e($favicon)?>">
     <link rel="apple-touch-icon" href="<?=e($favicon)?>">
-    <link rel="stylesheet" href="assets/css/app.css?v=13">
-    <link rel="stylesheet" href="assets/css/notify.css?v=7">
-    <link rel="stylesheet" href="assets/vendor/sweetalert2/sweetalert2.local.css?v=6">
+    <link rel="stylesheet" href="assets/css/app.css?v=14">
+    <link rel="stylesheet" href="assets/css/notify.css?v=8">
+    <link rel="stylesheet" href="assets/vendor/sweetalert2/sweetalert2.local.css?v=8">
     <script>window.APP={csrf:<?=json_encode(csrf_token())?>,questionsPerAttempt:<?=json_encode(max(1,(int)setting('questions_per_attempt','5')))?>};</script>
 </head>
 <body class="public-body evaluation-identify-mode">
@@ -37,7 +37,7 @@ $favicon = site_favicon();
         <nav class="public-nav-actions">
             <div class="site-switch" aria-label="Cambiar entre sitios">
                 <span class="site-switch-label">SITIOS</span>
-                <a class="site-link is-current" href="./" aria-current="page" title="Sitio de evaluación"><?=ui_icon('question')?><span>Evaluación</span></a>
+                <a class="site-link is-current" href="./" aria-current="page" title="Sitio de evaluación"><?=ui_icon('question')?><span>Preguntas</span></a>
                 <a class="site-link" href="juegos/" title="Ir al sitio de juegos"><?=ui_icon('external')?><span>Juegos</span></a>
             </div>
             <a class="public-action participate-link" href="#evaluationGate"><?=ui_icon('question')?><span>Participar</span></a>
@@ -69,7 +69,7 @@ $favicon = site_favicon();
                 <div class="field evaluation-badge-field">
                     <label for="badge">Número de gafete</label>
                     <div class="evaluation-badge-row">
-                        <div class="input-icon"><?=ui_icon('users')?> <input id="badge" name="badge" autocomplete="off" inputmode="numeric" placeholder="Ej. 4500329" autofocus></div>
+                        <div class="input-icon"><?=ui_icon('users')?> <input id="badge" name="badge" autocomplete="off" inputmode="numeric" pattern="[0-9]+" maxlength="40" placeholder="Ej. 4500329" autofocus></div>
                         <button class="btn btn-primary evaluation-continue" id="continueBtn" disabled><span>Continuar</span><span>→</span></button>
                     </div>
                 </div>
@@ -99,7 +99,7 @@ $favicon = site_favicon();
     <footer><?=e($company)?> · <?=date('Y')?> · <?=e($appName)?></footer>
 </main>
 <script src="assets/vendor/sweetalert2/sweetalert2.local.js?v=6"></script>
-<script src="assets/js/notify.js?v=6"></script>
+<script src="assets/js/notify.js?v=7"></script>
 <script src="assets/js/fullscreen.js?v=1"></script>
 <script src="assets/js/app.js?v=12"></script>
 </body>

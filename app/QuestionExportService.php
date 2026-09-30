@@ -6,7 +6,7 @@ final class QuestionExportService
     public function rows(): array
     {
         $pdo=db();
-        $rows=$pdo->query('SELECT id,question_text,points,active,created_at FROM questions ORDER BY id ASC')->fetchAll();
+        $rows=$pdo->query('SELECT id,question_text,question_type,required_selections,time_limit_seconds,points,active,created_at FROM questions ORDER BY id ASC')->fetchAll();
         $q=$pdo->prepare('SELECT option_text,is_correct,sort_order FROM question_options WHERE question_id=? ORDER BY sort_order,id');
         foreach($rows as &$row){
             $q->execute([$row['id']]);
@@ -20,17 +20,18 @@ final class QuestionExportService
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $headers=['ID','Pregunta','Opción 1','Opción 2','Opción 3','Opción 4','Respuesta correcta','Puntos','Publicar'];
+        $headers=['ID','Pregunta','Tipo','Cantidad a seleccionar','Tiempo (s)','Opción 1','Opción 2','Opción 3','Opción 4','Respuestas correctas','Puntos','Publicar'];
         $all=[$headers];
         foreach($rows as $r){
             $opts=array_values($r['options']??[]);
-            $correct='';
-            foreach($opts as $i=>$o) if((int)($o['is_correct']??0)===1) $correct=(string)($i+1);
+            $correct=[];
+            foreach($opts as $i=>$o) if((int)($o['is_correct']??0)===1) $correct[]=(string)($i+1);
             $all[]=[
-                (string)$r['id'],(string)$r['question_text'],
+                (string)$r['id'],(string)$r['question_text'],($r['question_type']??'single')==='multiple'?'Múltiple':'Una respuesta',
+                (string)($r['required_selections']??1),(string)($r['time_limit_seconds']??0),
                 (string)($opts[0]['option_text']??''),(string)($opts[1]['option_text']??''),
                 (string)($opts[2]['option_text']??''),(string)($opts[3]['option_text']??''),
-                $correct,number_format((float)$r['points'],2,'.',''),(int)$r['active']===1?'Sí':'No'
+                implode(',',$correct),number_format((float)$r['points'],2,'.',''),(int)$r['active']===1?'Sí':'No'
             ];
         }
         $tmp=tempnam(sys_get_temp_dir(),'questions_');
@@ -52,7 +53,7 @@ final class QuestionExportService
         $zip->addFromString('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
         $zip->addFromString('xl/styles.xml','<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B315B"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="1" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>');
         $last=max(1,count($all));
-        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="9" customWidth="1"/><col min="2" max="2" width="58" customWidth="1"/><col min="3" max="6" width="28" customWidth="1"/><col min="7" max="9" width="18" customWidth="1"/></cols><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:I'.$last.'"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews></worksheet>');
+        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="9" customWidth="1"/><col min="2" max="2" width="58" customWidth="1"/><col min="3" max="5" width="20" customWidth="1"/><col min="6" max="9" width="28" customWidth="1"/><col min="10" max="12" width="18" customWidth="1"/></cols><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:L'.$last.'"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews></worksheet>');
         $zip->close();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="preguntas-'.date('Ymd-His').'.xlsx"');
@@ -85,8 +86,8 @@ final class QuestionExportService
         header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
         header('Content-Disposition: attachment; filename="preguntas-'.date('Ymd-His').'.xls"');
         echo "\xEF\xBB\xBF";
-        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left;vertical-align:top}</style></head><body><h2>Banco de preguntas</h2><table><thead><tr><th>ID</th><th>Pregunta</th><th>Opción 1</th><th>Opción 2</th><th>Opción 3</th><th>Opción 4</th><th>Respuesta correcta</th><th>Puntos</th><th>Publicar</th></tr></thead><tbody>';
-        foreach($rows as $r){$opts=array_values($r['options']??[]);$correct='';foreach($opts as $i=>$o)if((int)($o['is_correct']??0)===1)$correct=(string)($i+1);$vals=[(string)$r['id'],(string)$r['question_text'],(string)($opts[0]['option_text']??''),(string)($opts[1]['option_text']??''),(string)($opts[2]['option_text']??''),(string)($opts[3]['option_text']??''),$correct,(string)$r['points'],(int)$r['active']===1?'Sí':'No'];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars($v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}
+        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left;vertical-align:top}</style></head><body><h2>Banco de preguntas</h2><table><thead><tr><th>ID</th><th>Pregunta</th><th>Tipo</th><th>Cantidad</th><th>Tiempo (s)</th><th>Opción 1</th><th>Opción 2</th><th>Opción 3</th><th>Opción 4</th><th>Respuestas correctas</th><th>Puntos</th><th>Publicar</th></tr></thead><tbody>';
+        foreach($rows as $r){$opts=array_values($r['options']??[]);$correct=[];foreach($opts as $i=>$o)if((int)($o['is_correct']??0)===1)$correct[]=(string)($i+1);$vals=[(string)$r['id'],(string)$r['question_text'],($r['question_type']??'single')==='multiple'?'Múltiple':'Una respuesta',(string)($r['required_selections']??1),(string)($r['time_limit_seconds']??0),(string)($opts[0]['option_text']??''),(string)($opts[1]['option_text']??''),(string)($opts[2]['option_text']??''),(string)($opts[3]['option_text']??''),implode(',',$correct),(string)$r['points'],(int)$r['active']===1?'Sí':'No'];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars($v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}
         echo '</tbody></table></body></html>';exit;
     }
 

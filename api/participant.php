@@ -10,7 +10,7 @@ try{
     }
     if($action==='select'){
         $badge=trim((string)($_POST['badge']??''));
-        if($badge==='') throw new RuntimeException('Ingresa el gafete.');
+        if($badge==='') throw new RuntimeException('Ingresa el gafete.'); if(!preg_match('/^[0-9]+$/',$badge)) throw new RuntimeException('El gafete solo puede contener números.');
         $q=db()->prepare("SELECT id,badge,name,department FROM employees WHERE badge=? AND status='active' LIMIT 1");
         $q->execute([$badge]);$e=$q->fetch();
         if(!$e) json_out(['success'=>false,'message'=>'No encontramos un empleado activo con ese gafete.'],404);

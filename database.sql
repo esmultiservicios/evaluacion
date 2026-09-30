@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS employees (
 CREATE TABLE IF NOT EXISTS questions (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   question_text TEXT NOT NULL,
+  question_type ENUM('single','multiple') NOT NULL DEFAULT 'single',
+  required_selections INT NOT NULL DEFAULT 1,
+  time_limit_seconds INT NOT NULL DEFAULT 0,
   points DECIMAL(7,2) NOT NULL DEFAULT 1,
   active TINYINT(1) NOT NULL DEFAULT 1,
   created_by BIGINT UNSIGNED NULL,
@@ -56,7 +59,10 @@ CREATE TABLE IF NOT EXISTS evaluations (
   status ENUM('started','completed') NOT NULL DEFAULT 'started',
   total_questions INT NOT NULL DEFAULT 0,
   correct_answers INT NOT NULL DEFAULT 0,
+  accuracy_score DECIMAL(6,2) NOT NULL DEFAULT 0,
+  speed_score DECIMAL(6,2) NOT NULL DEFAULT 0,
   score DECIMAL(6,2) NOT NULL DEFAULT 0,
+  response_seconds DECIMAL(10,3) NOT NULL DEFAULT 0,
   started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME NULL,
   ip_address VARCHAR(64) NULL,
@@ -72,11 +78,19 @@ CREATE TABLE IF NOT EXISTS evaluation_questions (
   question_id BIGINT UNSIGNED NULL,
   question_text_snapshot TEXT NOT NULL,
   points_snapshot DECIMAL(7,2) NOT NULL DEFAULT 1,
+  question_type_snapshot ENUM('single','multiple') NOT NULL DEFAULT 'single',
+  required_selections_snapshot INT NOT NULL DEFAULT 1,
+  time_limit_seconds_snapshot INT NOT NULL DEFAULT 0,
   sort_order INT NOT NULL DEFAULT 0,
   selected_option_id BIGINT UNSIGNED NULL,
   selected_option_text VARCHAR(500) NULL,
+  selected_option_ids_json TEXT NULL,
+  selected_option_texts_json TEXT NULL,
   correct_option_text VARCHAR(500) NULL,
+  correct_option_texts_json TEXT NULL,
   is_correct TINYINT(1) NULL,
+  response_seconds DECIMAL(10,3) NOT NULL DEFAULT 0,
+  speed_bonus DECIMAL(6,2) NOT NULL DEFAULT 0,
   answered_at DATETIME NULL,
   CONSTRAINT fk_eq_eval FOREIGN KEY(evaluation_id) REFERENCES evaluations(id) ON DELETE CASCADE,
   CONSTRAINT fk_eq_question FOREIGN KEY(question_id) REFERENCES questions(id) ON DELETE SET NULL,
@@ -158,11 +172,11 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS games (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, title VARCHAR(180) NOT NULL, slug VARCHAR(190) NOT NULL UNIQUE, game_type VARCHAR(40) NOT NULL, category VARCHAR(100) NOT NULL DEFAULT 'Ciberseguridad', difficulty ENUM('Fácil','Intermedio','Avanzado') NOT NULL DEFAULT 'Intermedio', intro TEXT NULL, content_json LONGTEXT NOT NULL, active TINYINT(1) NOT NULL DEFAULT 1, sound_enabled TINYINT(1) NOT NULL DEFAULT 1, sort_order INT NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,sort_order)
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, title VARCHAR(180) NOT NULL, slug VARCHAR(190) NOT NULL UNIQUE, game_type VARCHAR(40) NOT NULL, category VARCHAR(100) NOT NULL DEFAULT 'Ciberseguridad', difficulty ENUM('Fácil','Intermedio','Avanzado') NOT NULL DEFAULT 'Intermedio', intro TEXT NULL, content_json LONGTEXT NOT NULL, time_limit_seconds INT NOT NULL DEFAULT 0, active TINYINT(1) NOT NULL DEFAULT 1, sound_enabled TINYINT(1) NOT NULL DEFAULT 1, sort_order INT NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS game_attempts (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, game_id BIGINT UNSIGNED NOT NULL, employee_id BIGINT UNSIGNED NULL, badge_snapshot VARCHAR(40) NULL, employee_name_snapshot VARCHAR(180) NULL, score DECIMAL(6,2) NOT NULL DEFAULT 0, correct_answers INT NOT NULL DEFAULT 0, total_items INT NOT NULL DEFAULT 0, answers_json LONGTEXT NULL, started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, completed_at DATETIME NULL, CONSTRAINT fk_ga_game FOREIGN KEY(game_id) REFERENCES games(id) ON DELETE CASCADE, CONSTRAINT fk_ga_employee FOREIGN KEY(employee_id) REFERENCES employees(id) ON DELETE SET NULL, INDEX(game_id,completed_at), INDEX(employee_id)
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, game_id BIGINT UNSIGNED NOT NULL, employee_id BIGINT UNSIGNED NULL, badge_snapshot VARCHAR(40) NULL, employee_name_snapshot VARCHAR(180) NULL, accuracy_score DECIMAL(6,2) NOT NULL DEFAULT 0, speed_score DECIMAL(6,2) NOT NULL DEFAULT 0, score DECIMAL(6,2) NOT NULL DEFAULT 0, correct_answers INT NOT NULL DEFAULT 0, total_items INT NOT NULL DEFAULT 0, response_seconds DECIMAL(10,3) NOT NULL DEFAULT 0, answers_json LONGTEXT NULL, started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, completed_at DATETIME NULL, CONSTRAINT fk_ga_game FOREIGN KEY(game_id) REFERENCES games(id) ON DELETE CASCADE, CONSTRAINT fk_ga_employee FOREIGN KEY(employee_id) REFERENCES employees(id) ON DELETE SET NULL, INDEX(game_id,completed_at), INDEX(employee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS game_assignments (

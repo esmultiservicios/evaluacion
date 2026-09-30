@@ -7,7 +7,7 @@ final class GameAttemptReportService
     {
         $sql="SELECT a.id,a.badge_snapshot AS badge,a.employee_name_snapshot AS name,
                      emp.department,g.title AS game,g.category,g.difficulty,
-                     a.correct_answers,a.total_items,a.score,a.completed_at
+                     a.correct_answers,a.total_items,a.accuracy_score,a.speed_score,a.score,a.response_seconds,a.completed_at
               FROM game_attempts a
               JOIN games g ON g.id=a.game_id
               LEFT JOIN employees emp ON emp.id=a.employee_id
@@ -20,9 +20,9 @@ final class GameAttemptReportService
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['Gafete','Nombre','Departamento','Juego','Categoría','Dificultad','Correctas','Retos','Puntuación','Fecha']];
+        $all=[['Gafete','Nombre','Departamento','Juego','Categoría','Dificultad','Correctas','Retos','Exactitud','Rapidez','Puntuación final','Tiempo (s)','Fecha']];
         foreach($rows as $r){
-            $all[]=[(string)$r['badge'],(string)$r['name'],(string)($r['department']??''),(string)$r['game'],(string)$r['category'],(string)$r['difficulty'],(string)$r['correct_answers'],(string)$r['total_items'],number_format((float)$r['score'],2,'.',''),(string)$r['completed_at']];
+            $all[]=[(string)$r['badge'],(string)$r['name'],(string)($r['department']??''),(string)$r['game'],(string)$r['category'],(string)$r['difficulty'],(string)$r['correct_answers'],(string)$r['total_items'],number_format((float)($r['accuracy_score']??$r['score']),2,'.',''),number_format((float)($r['speed_score']??0),2,'.',''),number_format((float)$r['score'],2,'.',''),number_format((float)($r['response_seconds']??0),1,'.',''),(string)$r['completed_at']];
         }
         $tmp=tempnam(sys_get_temp_dir(),'gameattempts_');$zip=new ZipArchive();$zip->open($tmp,ZipArchive::CREATE|ZipArchive::OVERWRITE);
         $sheet='';foreach($all as $ri=>$row){$cells='';foreach($row as $ci=>$val){$ref=$this->col($ci+1).($ri+1);$style=$ri===0?' s="1"':'';$cells.='<c r="'.$ref.'" t="inlineStr"'.$style.'><is><t>'.htmlspecialchars((string)$val,ENT_XML1|ENT_QUOTES,'UTF-8').'</t></is></c>';}$sheet.='<row r="'.($ri+1).'">'.$cells.'</row>';}
@@ -31,7 +31,7 @@ final class GameAttemptReportService
         $zip->addFromString('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Participación juegos" sheetId="1" r:id="rId1"/></sheets></workbook>');
         $zip->addFromString('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
         $zip->addFromString('xl/styles.xml','<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="1"><fill><patternFill patternType="none"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs></styleSheet>');
-        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="30" customWidth="1"/><col min="3" max="6" width="24" customWidth="1"/><col min="7" max="10" width="16" customWidth="1"/></cols><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:J'.max(1,count($all)).'"/></worksheet>');
+        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="30" customWidth="1"/><col min="3" max="6" width="24" customWidth="1"/><col min="7" max="13" width="16" customWidth="1"/></cols><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:M'.max(1,count($all)).'"/></worksheet>');
         $zip->close();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');header('Content-Disposition: attachment; filename="participacion-juegos-'.date('Ymd-His').'.xlsx"');header('Content-Length: '.filesize($tmp));readfile($tmp);@unlink($tmp);exit;
     }
