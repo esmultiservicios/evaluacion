@@ -60,6 +60,25 @@ final class QuestionExportService
         readfile($tmp);@unlink($tmp);exit;
     }
 
+
+    public function outputPdf(): never
+    {
+        $rows=$this->rows();$lines=[];
+        $lines[]=setting('company_name','Tu empresa').' - '.setting('app_name','Evaluacion Corporativa');
+        $lines[]='Banco de preguntas · '.date('d/m/Y H:i');$lines[]='';
+        foreach($rows as $r){
+            $state=(int)$r['active']===1?'Publicada':'Inactiva';
+            $lines[]='#'.$r['id'].' ['.$state.'] '.$this->ascii((string)$r['question_text']);
+            foreach(array_values($r['options']??[]) as $i=>$o){$mark=(int)($o['is_correct']??0)===1?'*':' ';$lines[]='  '.$mark.' '.($i+1).'. '.$this->ascii((string)$o['option_text']);}
+            $lines[]='  Puntos: '.number_format((float)$r['points'],1);$lines[]='';
+        }
+        if(!$rows)$lines[]='Sin preguntas registradas.';
+        $pdf=$this->simplePdf($lines);header('Content-Type: application/pdf');header('Content-Disposition: attachment; filename="preguntas-'.date('Ymd-His').'.pdf"');header('Content-Length: '.strlen($pdf));echo $pdf;exit;
+    }
+
+    private function ascii(string $s): string{$x=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$s);return $x===false?$s:$x;}
+    private function simplePdf(array $lines): string{$pages=array_chunk($lines,45);$objects=[];$pageIds=[];$fontId=3;$next=4;foreach($pages as $page){$pageId=$next++;$contentId=$next++;$pageIds[]=$pageId;$stream="BT /F1 9 Tf 42 800 Td 12 TL\n";foreach($page as $line){$safe=str_replace(['\\','(',')'],['\\\\','\\(','\\)'],$line);$stream.='('.$safe.") Tj T*\n";}$stream.="ET";$objects[$contentId]="<< /Length ".strlen($stream)." >>\nstream\n$stream\nendstream";$objects[$pageId]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 $fontId 0 R >> >> /Contents $contentId 0 R >>";}$kids=implode(' ',array_map(fn($id)=>$id.' 0 R',$pageIds));$objects[1]='<< /Type /Catalog /Pages 2 0 R >>';$objects[2]='<< /Type /Pages /Kids ['.$kids.'] /Count '.count($pageIds).' >>';$objects[3]='<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>';ksort($objects);$pdf="%PDF-1.4\n";$offsets=[0=>0];$max=max(array_keys($objects));for($i=1;$i<=$max;$i++){$offsets[$i]=strlen($pdf);$pdf.=$i." 0 obj\n".($objects[$i]??'<<>>')."\nendobj\n";}$xref=strlen($pdf);$pdf.="xref\n0 ".($max+1)."\n0000000000 65535 f \n";for($i=1;$i<=$max;$i++)$pdf.=sprintf('%010d 00000 n ', $offsets[$i])."\n";$pdf.="trailer\n<< /Size ".($max+1)." /Root 1 0 R >>\nstartxref\n$xref\n%%EOF";return $pdf;}
+
     private function outputExcelFallback(): never
     {
         $rows=$this->rows();

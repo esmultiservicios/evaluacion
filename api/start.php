@@ -33,8 +33,9 @@ try{
     $count=max(1,min(500,(int)setting('questions_per_attempt','5')));
     $orderMode=setting('question_order_mode','random');
     $orderSql=$orderMode==='sequential'?'q.id ASC':'RAND()';
+    $validCount=(int)$pdo->query("SELECT COUNT(*) FROM questions q WHERE q.active=1 AND q.id IN (SELECT question_id FROM question_options GROUP BY question_id HAVING SUM(is_correct=1)=1 AND COUNT(*)>=2)")->fetchColumn();
+    if($validCount<$count) throw new RuntimeException('El banco de preguntas no está listo. Hay '.$validCount.' pregunta'.($validCount===1?'':'s').' publicada'.($validCount===1?'':'s').' y válida'.($validCount===1?'':'s').', pero la evaluación está configurada para '.$count.'. Publica al menos '.$count.' preguntas válidas desde Administración > Preguntas.');
     $qs=$pdo->query("SELECT q.id,q.question_text,q.points FROM questions q WHERE q.active=1 AND q.id IN (SELECT question_id FROM question_options GROUP BY question_id HAVING SUM(is_correct=1)=1 AND COUNT(*)>=2) ORDER BY ".$orderSql." LIMIT ".$count)->fetchAll();
-    if(count($qs)<$count) throw new RuntimeException('No hay suficientes preguntas activas y válidas. Se necesitan al menos '.$count.'.');
     $token=bin2hex(random_bytes(32));
     $st=$pdo->prepare('INSERT INTO evaluations(employee_id,badge_snapshot,employee_name_snapshot,token,total_questions,ip_address,user_agent) VALUES(?,?,?,?,?,?,?)');
     $st->execute([$emp['id'],$emp['badge'],$emp['name'],$token,$count,client_ip(),mb_substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500)]);

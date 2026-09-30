@@ -1,0 +1,4 @@
+Nombre,Motor,Categoría,Dificultad,Introducción,Publicar,Sonido
+Reto de phishing para Finanzas,binary,Ciberseguridad,Fácil,Analiza el mensaje y decide si es phishing o legítimo.,Sí,Sí
+Detecta señales sospechosas,hotspot,Ciberseguridad,Intermedio,Encuentra las señales de riesgo antes de continuar.,Sí,Sí
+Respuesta ante incidente,scenario,Ciberseguridad,Intermedio,Elige la respuesta más segura ante una situación real.,Sí,No

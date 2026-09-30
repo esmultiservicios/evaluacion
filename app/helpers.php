@@ -38,9 +38,153 @@ function ensure_runtime_schema(): void {
           CONSTRAINT fk_reset_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
           INDEX(user_id,expires_at), INDEX(expires_at,used_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("CREATE TABLE IF NOT EXISTS games (
+          id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          title VARCHAR(180) NOT NULL, slug VARCHAR(190) NOT NULL UNIQUE,
+          game_type VARCHAR(40) NOT NULL, category VARCHAR(100) NOT NULL DEFAULT 'Ciberseguridad',
+          difficulty ENUM('Fácil','Intermedio','Avanzado') NOT NULL DEFAULT 'Intermedio',
+          intro TEXT NULL, content_json LONGTEXT NOT NULL, active TINYINT(1) NOT NULL DEFAULT 1,
+          sound_enabled TINYINT(1) NOT NULL DEFAULT 1, sort_order INT NOT NULL DEFAULT 0,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX(active,sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("CREATE TABLE IF NOT EXISTS game_attempts (
+          id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, game_id BIGINT UNSIGNED NOT NULL,
+          employee_id BIGINT UNSIGNED NULL, badge_snapshot VARCHAR(40) NULL, employee_name_snapshot VARCHAR(180) NULL,
+          score DECIMAL(6,2) NOT NULL DEFAULT 0, correct_answers INT NOT NULL DEFAULT 0, total_items INT NOT NULL DEFAULT 0,
+          answers_json LONGTEXT NULL,
+          started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, completed_at DATETIME NULL,
+          CONSTRAINT fk_ga_game FOREIGN KEY(game_id) REFERENCES games(id) ON DELETE CASCADE,
+          CONSTRAINT fk_ga_employee FOREIGN KEY(employee_id) REFERENCES employees(id) ON DELETE SET NULL,
+          INDEX(game_id,completed_at), INDEX(employee_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        // v8.5: asignación persistente de juegos por participante. Evita que una selección
+        // aleatoria cambie al recargar y conserva el recorrido una vez iniciado.
+        db()->exec("CREATE TABLE IF NOT EXISTS game_assignments (
+          id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          employee_id BIGINT UNSIGNED NOT NULL,
+          game_id BIGINT UNSIGNED NOT NULL,
+          position INT NOT NULL DEFAULT 0,
+          rules_hash CHAR(64) NOT NULL,
+          assigned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT fk_gas_employee FOREIGN KEY(employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+          CONSTRAINT fk_gas_game FOREIGN KEY(game_id) REFERENCES games(id) ON DELETE CASCADE,
+          UNIQUE KEY uq_game_assignment(employee_id,game_id),
+          INDEX(employee_id,position), INDEX(rules_hash)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        // v8.3: guarda el detalle de cada reto para revisión posterior sin permitir un segundo envío.
+        try{
+          $col=db()->query("SHOW COLUMNS FROM game_attempts LIKE 'answers_json'")->fetch();
+          if(!$col) db()->exec("ALTER TABLE game_attempts ADD COLUMN answers_json LONGTEXT NULL AFTER total_items");
+        }catch(Throwable){}
+        $gameCount=(int)db()->query("SELECT COUNT(*) FROM games")->fetchColumn();
+        if($gameCount===0){
+          $games=game_seed_data();$ins=db()->prepare("INSERT INTO games(title,slug,game_type,category,difficulty,intro,content_json,active,sound_enabled,sort_order) VALUES(?,?,?,?,?,?,?,1,1,?)");
+          foreach($games as $i=>$g)$ins->execute([$g['title'],$g['slug'],$g['type'],'Ciberseguridad',$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$i+1]);
+        }
+        // v8.2: mejora los 8 juegos base ya instalados sin tocar juegos personalizados.
+        if(setting('game_content_schema','1')!=='2'){
+          $findBase=db()->prepare('SELECT id FROM games WHERE slug=? LIMIT 1');
+          $up=db()->prepare('UPDATE games SET game_type=?,difficulty=?,intro=?,content_json=? WHERE slug=?');
+          $add=db()->prepare('INSERT INTO games(title,slug,game_type,category,difficulty,intro,content_json,active,sound_enabled,sort_order) VALUES(?,?,?,?,?,?,?,1,1,?)');
+          foreach(game_seed_data() as $i=>$g){
+            $findBase->execute([$g['slug']]);
+            if($findBase->fetchColumn()){
+              $up->execute([$g['type'],$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$g['slug']]);
+            }else{
+              $add->execute([$g['title'],$g['slug'],$g['type'],'Ciberseguridad',$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$i+1]);
+            }
+          }
+          set_setting('game_content_schema','2');
+        }
+
+        // v8.4: banco inicial de preguntas. Se instala una sola vez y únicamente
+        // cuando una instalación existente todavía no tiene ninguna pregunta.
+        // Después el administrador conserva control total del banco.
+        if(setting('question_seed_schema','0')!=='1'){
+          $questionCount=(int)db()->query("SELECT COUNT(*) FROM questions")->fetchColumn();
+          if($questionCount===0){
+            $insertQuestion=db()->prepare('INSERT INTO questions(question_text,points,active,created_by) VALUES(?,1,1,NULL)');
+            $insertOption=db()->prepare('INSERT INTO question_options(question_id,option_text,is_correct,sort_order) VALUES(?,?,?,?)');
+            foreach(question_seed_data() as $question){
+              $insertQuestion->execute([$question['question']]);
+              $questionId=(int)db()->lastInsertId();
+              foreach($question['options'] as $index=>$option){
+                $insertOption->execute([$questionId,$option,$index===$question['correct']?1:0,$index+1]);
+              }
+            }
+          }
+          set_setting('question_seed_schema','1');
+        }
     }catch(Throwable){}
 }
 
+function question_seed_data(): array {
+ return [
+  ['question'=>'Recibes un correo urgente que pide confirmar tu contraseña desde un enlace. ¿Qué debes hacer primero?','options'=>['Abrir el enlace para comprobar si funciona','Responder con tu contraseña para evitar el bloqueo','No interactuar y validar la solicitud por un canal oficial','Reenviar el correo a un compañero para que lo pruebe'],'correct'=>2],
+  ['question'=>'Un compañero te solicita tu código MFA porque dice que TI está revisando tu cuenta. ¿Cuál es la acción correcta?','options'=>['Compartirlo si conoces al compañero','No compartirlo y confirmar con TI por un canal oficial','Compartirlo y cambiar la contraseña después','Enviar una captura del código'],'correct'=>1],
+  ['question'=>'Recibes un archivo ZIP inesperado de un remitente externo. ¿Qué práctica es más segura?','options'=>['Abrirlo si el antivirus no muestra alertas','Cambiarle el nombre antes de abrirlo','Validar remitente y contexto antes de descargar o abrir','Subirlo a una carpeta compartida para revisarlo después'],'correct'=>2],
+  ['question'=>'¿Cuál de estas contraseñas es más resistente?','options'=>['Empresa2026','Password123!','Lago-Cobre-Nube-47!','MiNombre123'],'correct'=>2],
+  ['question'=>'Si te alejas de tu computadora por unos minutos, ¿qué debes hacer?','options'=>['Dejarla abierta si estás dentro de la oficina','Bloquear la pantalla antes de alejarte','Apagar solamente el monitor','Minimizar las ventanas abiertas'],'correct'=>1],
+  ['question'=>'Encuentras una memoria USB sin identificar dentro de las instalaciones. ¿Qué debes hacer?','options'=>['Conectarla para identificar al dueño','Probarla en una computadora que no uses','Entregarla a TI o Seguridad sin conectarla','Abrirla únicamente si no contiene archivos ejecutables'],'correct'=>2],
+  ['question'=>'¿Qué debes hacer con un correo que parece phishing?','options'=>['Eliminarlo sin avisar a nadie','Reportarlo por el canal oficial definido por la empresa','Responder para confirmar si el remitente es real','Abrir los enlaces desde el teléfono'],'correct'=>1],
+  ['question'=>'Necesitas conectarte a una red Wi‑Fi pública para trabajar. ¿Cuál es la opción más segura?','options'=>['Conectarte a cualquier red con mejor señal','Usar el acceso corporativo seguro o VPN según el procedimiento de la empresa','Desactivar el antivirus para mejorar la conexión','Compartir archivos mientras la red esté disponible'],'correct'=>1],
+  ['question'=>'¿Por qué es importante mantener actualizado el software corporativo?','options'=>['Solo para cambiar el diseño de las aplicaciones','Porque las actualizaciones pueden corregir vulnerabilidades conocidas','Para evitar tener que usar MFA','Porque aumenta automáticamente el espacio de almacenamiento'],'correct'=>1],
+  ['question'=>'Un sitio muestra HTTPS y un candado. ¿Eso confirma por sí solo que el sitio pertenece a la empresa?','options'=>['Sí, el candado garantiza que el sitio es legítimo','Sí, siempre que cargue rápido','No, también se debe validar el dominio y el contexto','No, porque HTTPS nunca es seguro'],'correct'=>2],
+ ];
+}
+
+function game_seed_data(): array {
+ return [
+ ['title'=>'Detecta el peligro','slug'=>'detecta-el-peligro','type'=>'hotspot','difficulty'=>'Intermedio','intro'=>'Explora un correo realista y toca las señales que podrían indicar un intento de fraude.','visual'=>'email-alert.svg','items'=>[
+  ['prompt'=>'Encuentra las 3 señales de riesgo en este correo antes de continuar.','scene'=>'email','hotspots'=>[
+    ['x'=>74,'y'=>24,'label'=>'Dominio sospechoso','correct'=>1,'explanation'=>'El remitente usa empresa-seguridad.example en lugar del dominio corporativo real.'],
+    ['x'=>51,'y'=>49,'label'=>'Urgencia artificial','correct'=>1,'explanation'=>'La presión de tiempo busca que actúes sin validar la solicitud.'],
+    ['x'=>51,'y'=>72,'label'=>'Enlace externo','correct'=>1,'explanation'=>'El botón dirige a un dominio que no pertenece a la empresa.'],
+    ['x'=>16,'y'=>14,'label'=>'Logo','correct'=>0,'explanation'=>'El logo por sí solo no confirma legitimidad; puede copiarse fácilmente.']],
+   'explanation'=>'Excelente: dominio, urgencia y destino del enlace deben validarse antes de interactuar.'],
+  ['prompt'=>'Ahora localiza las 2 señales más importantes en este segundo mensaje.','scene'=>'attachment','hotspots'=>[
+    ['x'=>73,'y'=>26,'label'=>'Remitente externo','correct'=>1,'explanation'=>'El dominio no coincide con el proveedor habitual.'],
+    ['x'=>52,'y'=>70,'label'=>'Adjunto comprimido','correct'=>1,'explanation'=>'Un ZIP inesperado puede contener código malicioso.'],
+    ['x'=>19,'y'=>48,'label'=>'Saludo','correct'=>0,'explanation'=>'Un saludo genérico puede llamar la atención, pero no prueba por sí solo que sea malicioso.']],
+   'explanation'=>'Muy bien. Valida remitente y adjuntos inesperados por un canal oficial.']]],
+ ['title'=>'Phishing o legítimo','slug'=>'phishing-o-legitimo','type'=>'binary','difficulty'=>'Fácil','intro'=>'Clasifica mensajes realistas y aprende qué señales pesan más al decidir.','visual'=>'phishing-check.svg','items'=>[
+  ['prompt'=>'RRHH <rrhh@empresa.com> · “Tu constancia está disponible en el portal interno habitual.”','options'=>['Phishing','Legítimo'],'correct'=>1,'explanation'=>'Bien: remitente y canal esperado son señales positivas, aunque siempre conviene validar el enlace antes de abrirlo.'],
+  ['prompt'=>'Microsoft Security <alert@micros0ft-security.example> · “Último aviso: confirma tu contraseña en 10 minutos.”','options'=>['Phishing','Legítimo'],'correct'=>0,'explanation'=>'Dominio alterado, presión de tiempo y solicitud de credenciales son señales claras de riesgo.'],
+  ['prompt'=>'Compras <compras@empresa.com> · “Orden 4821 disponible en el ERP. Ingresa desde tu acceso habitual.”','options'=>['Phishing','Legítimo'],'correct'=>1,'explanation'=>'El mensaje remite al flujo conocido y no exige credenciales desde un enlace inesperado.']]],
+ ['title'=>'¿Qué harías tú?','slug'=>'que-harias-tu','type'=>'scenario','difficulty'=>'Intermedio','intro'=>'Toma decisiones frente a situaciones de trabajo y descubre la alternativa más segura.','visual'=>'mfa-decision.svg','items'=>[
+  ['prompt'=>'Un compañero te pide tu código MFA porque “TI está probando tu cuenta”.','options'=>['Se lo comparto si conozco al compañero','No lo comparto y valido con TI por un canal oficial','Lo envío y luego cambio la contraseña','Le mando una captura'],'correct'=>1,'explanation'=>'Un código MFA es personal. Valida solicitudes inesperadas por un canal oficial independiente.'],
+  ['prompt'=>'Encuentras una memoria USB sin identificar en el estacionamiento.','options'=>['La conecto para identificar al dueño','La llevo a TI/Seguridad sin conectarla','La pruebo en una PC que no uso','La conecto solo si no tiene archivos .exe'],'correct'=>1,'explanation'=>'Dispositivos desconocidos pueden ser un vector de ataque. Entrégalos sin conectarlos.'],
+  ['prompt'=>'Recibes una llamada que dice ser del banco y te pide instalar una app de soporte remoto.','options'=>['La instalo si saben mi nombre','Cuelgo y llamo al número oficial del banco','La instalo y luego la borro','Comparto pantalla sin dar contraseña'],'correct'=>1,'explanation'=>'Corta el contacto y valida por un canal que tú mismo inicies.']]],
+ ['title'=>'Encuentra los errores','slug'=>'encuentra-los-errores','type'=>'find','difficulty'=>'Avanzado','intro'=>'Inspecciona una pantalla y encuentra todos los errores antes de enviar información sensible.','visual'=>'login-errors.svg','items'=>[
+  ['prompt'=>'Encuentra los 3 errores de seguridad en esta pantalla de inicio de sesión.','scene'=>'login','hotspots'=>[
+    ['x'=>55,'y'=>19,'label'=>'Dominio falso','correct'=>1,'explanation'=>'empresa-login.example no es el dominio corporativo esperado.'],
+    ['x'=>52,'y'=>58,'label'=>'Solicita código MFA junto a la contraseña','correct'=>1,'explanation'=>'Un formulario inesperado que pide todo a la vez merece validación adicional.'],
+    ['x'=>53,'y'=>80,'label'=>'Mensaje de presión','correct'=>1,'explanation'=>'La amenaza de bloqueo inmediato busca reducir tu tiempo de análisis.'],
+    ['x'=>17,'y'=>34,'label'=>'Candado','correct'=>0,'explanation'=>'El candado solo indica cifrado de la conexión; no confirma la identidad del sitio.']],
+   'explanation'=>'Perfecto. El dominio, la solicitud inusual y la presión de tiempo forman una combinación de alto riesgo.'],
+  ['prompt'=>'Encuentra las 2 señales de riesgo en este aviso de soporte.','scene'=>'support','hotspots'=>[
+    ['x'=>74,'y'=>28,'label'=>'Dominio externo','correct'=>1,'explanation'=>'El remitente no pertenece al dominio oficial.'],
+    ['x'=>52,'y'=>69,'label'=>'Pide desactivar protección','correct'=>1,'explanation'=>'Soporte legítimo no debería pedirte desactivar controles de seguridad sin un procedimiento validado.'],
+    ['x'=>20,'y'=>49,'label'=>'Número de ticket','correct'=>0,'explanation'=>'Un número de ticket puede ser inventado y no valida por sí solo el mensaje.']],
+   'explanation'=>'Excelente. Reporta el mensaje y confirma el incidente desde el canal oficial.']]],
+ ['title'=>'Reto rápido','slug'=>'reto-rapido','type'=>'speed','difficulty'=>'Intermedio','intro'=>'Responde micro-retos contra reloj. La precisión vale más que correr sin revisar.','visual'=>'speed-shield.svg','items'=>[
+  ['prompt'=>'¿Cuál contraseña es más resistente?','options'=>['Empresa2026','Password123!','Lago-Cobre-Nube-47!','Edwin123'],'correct'=>2,'seconds'=>12,'explanation'=>'Las frases largas y únicas son más resistentes y más fáciles de recordar que patrones comunes.'],
+  ['prompt'=>'¿Qué haces antes de escanear un QR inesperado?','options'=>['Lo abro y luego reviso','Valido quién lo envió y el destino','Desactivo datos móviles','Le tomo captura'],'correct'=>1,'seconds'=>10,'explanation'=>'Los QR pueden ocultar destinos. Valida contexto y procedencia antes de abrirlos.'],
+  ['prompt'=>'¿Qué protege mejor una cuenta además de la contraseña?','options'=>['MFA','Modo oscuro','Cambiar el fondo','Cerrar el navegador'],'correct'=>0,'seconds'=>8,'explanation'=>'MFA agrega una capa adicional y reduce el impacto de una contraseña comprometida.']]],
+ ['title'=>'Ordena los pasos','slug'=>'ordena-los-pasos','type'=>'order','difficulty'=>'Intermedio','intro'=>'Arrastra y suelta las acciones hasta construir la secuencia correcta de respuesta.','visual'=>'order-incident.svg','items'=>[
+  ['prompt'=>'Ordena qué hacer ante un correo sospechoso.','options'=>['No interactuar con enlaces o adjuntos','Verificar remitente y contexto','Reportar por el canal oficial','Eliminar o aislar según el procedimiento'],'correctOrder'=>[0,1,2,3],'explanation'=>'La secuencia reduce la exposición, valida la sospecha y permite que Seguridad actúe.'],
+  ['prompt'=>'Ordena la respuesta ante una contraseña posiblemente comprometida.','options'=>['Cambiar la contraseña desde el sitio oficial','Cerrar sesiones activas desconocidas','Activar o revisar MFA','Reportar el incidente si hubo acceso no autorizado'],'correctOrder'=>[0,1,2,3],'explanation'=>'Primero recupera el control de la cuenta, luego refuerza la autenticación y reporta cualquier acceso indebido.']]],
+ ['title'=>'Relaciona conceptos','slug'=>'relaciona-conceptos','type'=>'match','difficulty'=>'Fácil','intro'=>'Arrastra cada concepto a su definición o selecciónalo y toca su destino desde el teléfono.','visual'=>'concept-map.svg','items'=>[
+  ['prompt'=>'Relaciona cada concepto con la definición correcta.','pairs'=>[['Phishing','Mensaje diseñado para engañar y obtener datos'],['MFA','Segundo factor para verificar identidad'],['Ransomware','Malware que cifra o bloquea información'],['Ingeniería social','Manipulación de personas para obtener acceso']],'explanation'=>'Reconocer el vocabulario ayuda a identificar el riesgo más rápido en situaciones reales.'],
+  ['prompt'=>'Relaciona cada acción con su objetivo.','pairs'=>[['Actualizar','Corregir vulnerabilidades conocidas'],['Respaldar','Poder recuperar información'],['Reportar','Permitir que Seguridad investigue'],['Bloquear pantalla','Evitar acceso cuando te alejas']],'explanation'=>'Cada hábito cubre una capa distinta de protección.']]],
+ ['title'=>'Verdadero o falso','slug'=>'verdadero-o-falso','type'=>'truefalse','difficulty'=>'Fácil','intro'=>'Decide si cada afirmación es verdadera o falsa y recibe retroalimentación inmediata.','visual'=>'truefalse-lock.svg','items'=>[
+  ['prompt'=>'Si un sitio tiene HTTPS, necesariamente pertenece a la empresa que dice representar.','options'=>['Verdadero','Falso'],'correct'=>1,'explanation'=>'HTTPS cifra la conexión, pero un atacante también puede usar un certificado válido en un dominio falso.'],
+  ['prompt'=>'Un código MFA debe tratarse como una contraseña y no compartirse.','options'=>['Verdadero','Falso'],'correct'=>0,'explanation'=>'Correcto. Los códigos MFA son secretos temporales y no deben compartirse con otras personas.'],
+  ['prompt'=>'Es seguro reutilizar la misma contraseña si solo se usa en sistemas de trabajo.','options'=>['Verdadero','Falso'],'correct'=>1,'explanation'=>'Reutilizar contraseñas aumenta el impacto si una sola cuenta se compromete.']]]
+ ];
+}
 function user_initials(string $name): string {
     $parts=preg_split('/\s+/u',trim($name),-1,PREG_SPLIT_NO_EMPTY)?:[];
     if(!$parts)return 'US';
@@ -79,7 +223,10 @@ function ui_icon(string $name,string $class='ui-icon'): string {
       'list'=>'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
       'home'=>'<path d="m3 11 9-8 9 8"/><path d="M5 10v11h14V10M9 21v-7h6v7"/>',
       'shield'=>'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
-      'refresh'=>'<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8a7 7 0 0 1 11.8-2L20 8M4 16l2.1 2a7 7 0 0 0 11.8-2"/>'
+      'refresh'=>'<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8a7 7 0 0 1 11.8-2L20 8M4 16l2.1 2a7 7 0 0 0 11.8-2"/>',
+      'fullscreen'=>'<path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/>',
+      'excel'=>'<path d="M5 3h10l4 4v14H5V3Z"/><path d="M15 3v5h5M8 11l5 6M13 11l-5 6"/>',
+      'pdf'=>'<path d="M5 3h10l4 4v14H5V3Z"/><path d="M15 3v5h5"/><path d="M8 16v-5h2a1.5 1.5 0 0 1 0 3H8M13 16v-5h1.5a2.5 2.5 0 0 1 0 5H13M18 16v-5h3"/>'
     ];
     $body=$paths[$name]??$paths['question'];
     return '<svg class="'.e($class).'" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'.$body.'</svg>';

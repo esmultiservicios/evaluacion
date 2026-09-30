@@ -12,7 +12,10 @@ require_once ROOT_PATH.'/app/EmailTemplates.php';
 require_once ROOT_PATH.'/app/EmailService.php';
 require_once ROOT_PATH.'/app/ReportService.php';
 require_once ROOT_PATH.'/app/XlsxService.php';
+require_once ROOT_PATH.'/app/EmployeeExportService.php';
 require_once ROOT_PATH.'/app/QuestionExportService.php';
+require_once ROOT_PATH.'/app/GameExportService.php';
+require_once ROOT_PATH.'/app/GameAttemptReportService.php';
 load_env(ROOT_PATH.'/.env');
 if (is_file(ROOT_PATH.'/.env')) ensure_runtime_schema();
 if (!is_file(ROOT_PATH.'/.env') && !str_contains($_SERVER['REQUEST_URI'] ?? '', '/install')) {
