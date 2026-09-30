@@ -211,3 +211,11 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - Importación de juegos: conserva/sincroniza `group_name` al crear o actualizar registros.
 - Configuración: se aumentó la separación visual de `Puntuación por rapidez`, su interruptor y el campo del bono máximo.
 - Usuarios: tanto en vista Detalle como Miniatura se usa `Acciones` con Editar, Activar/Desactivar y Eliminar. La sesión actual y el último administrador activo están protegidos.
+
+## v8.9.5 · persistencia unificada en Reportes
+
+- Reportes usa una sola preferencia de vista `Detalle/Miniatura` para Resumen por persona, Resultados de preguntas y Reporte de juegos.
+- Cambiar la vista en cualquiera de los bloques actualiza los demás bloques de Reportes en la misma pantalla y guarda la selección en `user_preferences`.
+- Al salir de Reportes y volver a entrar, la vista seleccionada se restaura desde base de datos para el usuario administrativo.
+- En móvil se conserva la regla de seguridad visual: Miniatura se fuerza automáticamente para evitar desbordamientos.
+- Se conservan las exportaciones Excel/PDF de Categorías incorporadas en v8.9.4.
