@@ -563,3 +563,36 @@ body.admin-loading .admin-topbar:after{content:"";position:absolute;left:0;right
   .admin-body .speed-scoring-box>div{padding-right:0}
   .admin-body .speed-scoring-box .premium-switch{width:100%;min-width:0!important}
 }
+
+/* v8.9.3 · toolbars compactas, menús de acciones sin recortes y vista persistente */
+.admin-body .panel.action-menu-open-context{position:relative;z-index:900!important;overflow:visible!important}
+.admin-body [data-list-items].action-menu-open-context{position:relative;z-index:910!important;overflow:visible!important}
+.admin-body .record-card.action-menu-open-context,
+.admin-body .game-admin-card.action-menu-open-context{position:relative;z-index:920!important;overflow:visible!important}
+.admin-body .record-action-menu[open]{z-index:930!important}
+.admin-body .record-action-popover{z-index:940!important;max-height:min(360px,calc(100dvh - 32px));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.admin-body .record-action-menu.open-up .record-action-popover{top:auto;bottom:calc(100% + 7px)}
+
+/* El buscador de cada listado ya no roba espacio a Mostrar / vistas / acciones. */
+.admin-body .list-search{width:min(300px,100%)!important;max-width:300px!important;flex:0 1 300px!important}
+.admin-body .list-tools{min-width:0}
+
+/* Select2 compacto de “Mostrar X”: ancho útil, sin scroll horizontal ni texto cortado. */
+.admin-body .records-size{flex:0 0 auto!important;white-space:nowrap}
+.admin-body .records-size>.s2-container{width:92px!important;min-width:92px!important;max-width:92px!important;margin:0!important}
+.admin-body .records-size .s2-selection{min-height:42px!important;height:42px!important;padding:0 11px!important;border-radius:11px!important}
+.admin-body .records-size .s2-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-body .records-size .s2-dropdown{left:auto!important;right:0!important;width:118px!important;min-width:118px!important;max-width:118px!important;overflow-x:hidden!important;padding:6px!important}
+.admin-body .records-size .s2-dropdown>div{overflow-x:hidden!important}
+.admin-body .records-size .s2-option{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;padding:9px 10px!important}
+
+/* En escritorio/tablet se respeta la preferencia guardada; en teléfono miniatura sigue siendo obligatoria. */
+@media(max-width:800px){
+  .admin-body .list-search{width:100%!important;max-width:none!important;flex:1 1 100%!important}
+}
+@media(max-width:767px){
+  .admin-body .record-action-menu{width:100%;justify-self:stretch!important}
+  .admin-body .record-action-menu>summary{width:100%}
+  .admin-body .record-action-popover{left:0!important;right:0!important;width:100%!important;max-width:none!important}
+  .admin-body .record-action-menu.open-up .record-action-popover{top:calc(100% + 7px);bottom:auto}
+}
