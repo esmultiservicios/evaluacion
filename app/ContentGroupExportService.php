@@ -5,7 +5,7 @@ final class ContentGroupExportService
 {
     public function rows(): array
     {
-        $sql="SELECT cg.id,cg.name,cg.description,cg.active,cg.created_at,
+        $sql="SELECT cg.id,cg.name,cg.description,cg.active,cg.question_visible,cg.game_visible,cg.created_at,
                     (SELECT COUNT(*) FROM questions q WHERE q.group_name=cg.name) question_count,
                     (SELECT COUNT(*) FROM games g WHERE g.group_name=cg.name) game_count,
                     (SELECT COUNT(*) FROM employees e WHERE e.question_group=cg.name OR e.game_group=cg.name) employee_count
@@ -18,7 +18,7 @@ final class ContentGroupExportService
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['ID','Categoría / campaña','Descripción','Preguntas','Juegos','Empleados','Estado','Creada']];
+        $all=[['ID','Categoría / campaña','Descripción','Preguntas','Juegos','Empleados','Preguntas visible','Juegos visible','Estado','Creada']];
         foreach($rows as $r){
             $all[]=[(string)$r['id'],(string)$r['name'],(string)($r['description']??''),(string)$r['question_count'],(string)$r['game_count'],(string)$r['employee_count'],(int)$r['active']===1?'Activa':'Inactiva',(string)($r['created_at']??'')];
         }

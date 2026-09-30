@@ -11,6 +11,10 @@ try{
     $q->execute([$badge]);
     $emp=$q->fetch();
     if(!$emp) throw new RuntimeException('Empleado no encontrado.');
+    $resolvedGroup=resolve_content_group($emp,'questions');
+    $questionGroup=$resolvedGroup['name'];
+    $questionGroupDescription=$resolvedGroup['description'];
+    $employeePayload=['name'=>$emp['name'],'badge'=>$emp['badge'],'department'=>$emp['department']??'','question_group'=>$questionGroup,'group_description'=>$questionGroupDescription,'group_source'=>$resolvedGroup['source']];
 
     $q=$pdo->prepare('SELECT * FROM evaluations WHERE employee_id=? LIMIT 1 FOR UPDATE');
     $q->execute([$emp['id']]);
@@ -43,20 +47,20 @@ try{
         $pdo->commit();
         if($existing['status']==='completed'){
             json_out(['success'=>true,'review'=>true,'resumed'=>false,'token'=>$existing['token'],
-                'employee'=>['name'=>$emp['name'],'badge'=>$emp['badge'],'department'=>$emp['department']??''],
+                'employee'=>$employeePayload,
                 'questions'=>$questions,'score'=>(float)$existing['score'],'accuracy_score'=>(float)($existing['accuracy_score']??$existing['score']),
                 'speed_score'=>(float)($existing['speed_score']??0),'response_seconds'=>(float)($existing['response_seconds']??0),
                 'correct'=>(int)$existing['correct_answers'],'total'=>(int)$existing['total_questions'],
                 'completed_at'=>$existing['completed_at'],'speed_enabled'=>setting('speed_scoring_enabled','0')==='1']);
         }
         foreach($questions as &$item){unset($item['selected_ids'],$item['selected_texts'],$item['correct_texts'],$item['correct'],$item['response_seconds']);}unset($item);
-        json_out(['success'=>true,'resumed'=>true,'token'=>$existing['token'],'employee'=>['name'=>$emp['name'],'badge'=>$emp['badge'],'department'=>$emp['department']??''],'questions'=>$questions,'speed_enabled'=>setting('speed_scoring_enabled','0')==='1']);
+        json_out(['success'=>true,'resumed'=>true,'token'=>$existing['token'],'employee'=>$employeePayload,'questions'=>$questions,'speed_enabled'=>setting('speed_scoring_enabled','0')==='1']);
     }
 
     $count=max(1,min(500,(int)setting('questions_per_attempt','5')));
     $orderMode=setting('question_order_mode','random');
     $orderSql=$orderMode==='sequential'?'q.id ASC':'RAND()';
-    $group=(string)($emp['question_group']??'');$groupWhere=$group!==''?" AND q.group_name=".$pdo->quote($group):'';
+    $group=$questionGroup;$groupWhere=$group!==''?" AND q.group_name=".$pdo->quote($group):'';
     $validSql="SELECT COUNT(*) FROM questions q WHERE q.active=1".$groupWhere." AND q.id IN (
       SELECT qo.question_id FROM question_options qo JOIN questions q2 ON q2.id=qo.question_id
       GROUP BY qo.question_id,q2.question_type,q2.required_selections
@@ -90,7 +94,7 @@ try{
         $out[]=['id'=>$eqid,'number'=>$i+1,'text'=>$qrow['question_text'],'type'=>$type,'required'=>$required,'time_limit'=>$time,'options'=>$view];
     }
     $pdo->commit();
-    json_out(['success'=>true,'resumed'=>false,'token'=>$token,'employee'=>['name'=>$emp['name'],'badge'=>$emp['badge'],'department'=>$emp['department']??''],'questions'=>$out,'speed_enabled'=>setting('speed_scoring_enabled','0')==='1']);
+    json_out(['success'=>true,'resumed'=>false,'token'=>$token,'employee'=>$employeePayload,'questions'=>$out,'speed_enabled'=>setting('speed_scoring_enabled','0')==='1']);
 }catch(Throwable $e){
     if(db()->inTransaction()) db()->rollBack();
     json_out(['success'=>false,'message'=>$e->getMessage()],422);

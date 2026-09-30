@@ -174,3 +174,436 @@ html{font-size:16px}body.public-body{font-weight:550;-webkit-font-smoothing:auto
   .public-body.evaluation-identify-mode .evaluation-identify-card h2{font-size:21px}
   .public-body.evaluation-identify-mode .evaluation-identify-copy{margin-bottom:8px;font-size:10.5px}
 }
+
+/* v8.99 · escritorio amplio + lectura adaptable en todo el portal de evaluación */
+@media (min-width:1100px){
+  .public-nav,.public-shell{width:min(1440px,calc(100% - 48px))}
+  .public-nav{height:76px}
+  .public-brand strong{font-size:13.5px}.public-brand small{font-size:10.5px}
+  .public-nav nav a{height:42px;font-size:12px;padding:0 14px}
+  .evaluation-identify-shell{max-width:1320px;width:100%;grid-template-columns:1.08fr .92fr}
+  .evaluation-card{width:100%;max-width:1320px;margin-left:auto;margin-right:auto;padding:32px 36px}
+  .participant-welcome-row,.quiz-participant-bar{padding:17px 19px}
+  .participant-welcome-main h2{font-size:25px}.participant-welcome-main p{font-size:13px}
+  .participant-progress-metrics>span{min-width:92px;padding:10px 13px}.participant-progress-metrics strong{font-size:17px}
+  .evaluation-ready-hero{padding:30px 32px;grid-template-columns:64px minmax(0,1fr) 180px;gap:22px;border-radius:24px}
+  .evaluation-ready-icon{width:64px;height:64px;border-radius:19px;font-size:30px}
+  .evaluation-ready-copy h3{font-size:29px}.evaluation-ready-copy p{max-width:760px;font-size:14px;line-height:1.62}
+  .evaluation-ready-chips span{font-size:10.5px;padding:8px 10px}
+  .evaluation-ready-person{min-width:180px;padding:16px}.evaluation-ready-person strong{font-size:13px}.evaluation-ready-person small{font-size:10.5px}
+  .evaluation-start-guide{gap:12px;margin-top:17px}.evaluation-start-guide>div{padding:15px}.evaluation-start-guide span strong{font-size:12.5px}.evaluation-start-guide span small{font-size:10.5px;line-height:1.45}
+  .wizard-actions,.wizard-footer{margin-top:22px}.btn{min-height:48px;font-size:13.5px;padding-left:19px;padding-right:19px}
+  .quiz-wizard-head{margin-top:2px}.quiz-section-title{font-size:13px}.quiz-progress-copy span{font-size:13px}
+  .question-stage{padding:28px 30px;border-radius:20px}.question-stage h3{font-size:23px;line-height:1.42;margin:10px 0 20px}
+  .option{padding:14px 50px 14px 15px;font-size:14px;line-height:1.45}.option-letter{width:28px;height:28px;font-size:11px}
+  .result-score-grid{max-width:900px;grid-template-columns:220px minmax(0,1fr)}.final-summary-list{max-width:1040px;margin-left:auto;margin-right:auto}
+}
+@media (min-width:1500px){
+  .public-nav,.public-shell{width:min(1520px,calc(100% - 64px))}
+  .evaluation-card,.evaluation-identify-shell{max-width:1400px}
+}
+@media (min-width:721px) and (max-width:1099px){
+  .public-nav,.public-shell{width:min(100% - 28px,1120px)}
+  .evaluation-card{width:100%;max-width:100%}
+  .evaluation-ready-copy h3{font-size:23px}.evaluation-ready-copy p{font-size:12.5px}
+}
+
+
+/* v9.00 · evaluación de escritorio realmente amplia y navegación sin elementos redundantes */
+@media (min-width:1100px){
+  .public-body.evaluation-active .public-shell{width:min(1520px,calc(100% - 56px))!important;max-width:none!important}
+  .public-body.evaluation-active .evaluation-card{width:100%!important;max-width:none!important;padding:34px 42px!important}
+  .public-body.evaluation-active .participant-welcome-row,
+  .public-body.evaluation-active .quiz-participant-bar{padding:18px 21px!important}
+  .public-body.evaluation-active .participant-welcome-main h2{font-size:27px!important}
+  .public-body.evaluation-active .participant-welcome-main p{font-size:13.5px!important}
+  .public-body.evaluation-active .participant-progress-metrics>span{min-width:100px!important;padding:11px 14px!important}
+  .public-body.evaluation-active .participant-progress-metrics strong{font-size:18px!important}
+  .public-body.evaluation-active .evaluation-ready-hero{padding:32px 36px!important;grid-template-columns:68px minmax(0,1fr) 190px!important;gap:24px!important}
+  .public-body.evaluation-active .evaluation-ready-icon{width:68px!important;height:68px!important;font-size:32px!important}
+  .public-body.evaluation-active .evaluation-ready-copy h3{font-size:31px!important}
+  .public-body.evaluation-active .evaluation-ready-copy p{max-width:900px!important;font-size:14.5px!important;line-height:1.62!important}
+  .public-body.evaluation-active .evaluation-ready-chips span{font-size:11px!important;padding:8px 11px!important}
+  .public-body.evaluation-active .evaluation-start-guide>div{padding:16px!important}
+  .public-body.evaluation-active .evaluation-start-guide span strong{font-size:13px!important}
+  .public-body.evaluation-active .evaluation-start-guide span small{font-size:11px!important}
+  .public-body.evaluation-active .quiz-section-title,.public-body.evaluation-active .quiz-progress-copy span{font-size:13.5px!important}
+  .public-body.evaluation-active .question-stage{padding:32px 36px!important;border-radius:22px!important}
+  .public-body.evaluation-active .question-stage h3{font-size:26px!important;line-height:1.42!important;margin:11px 0 22px!important}
+  .public-body.evaluation-active .options{gap:11px!important}
+  .public-body.evaluation-active .option{min-height:58px!important;padding:16px 54px 16px 17px!important;font-size:15.5px!important;line-height:1.45!important;border-radius:14px!important}
+  .public-body.evaluation-active .option-letter{width:30px!important;height:30px!important;font-size:12px!important}
+  .public-body.evaluation-active .btn{min-height:50px!important;font-size:14px!important}
+}
+@media (min-width:1500px){
+  .public-body.evaluation-active .public-shell{width:min(1580px,calc(100% - 64px))!important}
+}
+@media (min-width:721px) and (max-width:1099px){
+  .public-body.evaluation-active .evaluation-card{max-width:none!important;width:100%!important}
+  .public-body.evaluation-active .question-stage h3{font-size:21px}
+  .public-body.evaluation-active .option{font-size:13.5px}
+}
+
+
+/* v9.01 · identidad visual SOAR integrada en identificación y evaluación */
+.soar-identify-banner{position:relative;z-index:1;width:100%;height:clamp(108px,14vw,170px);margin:0 0 22px;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.18);background:#06142f;box-shadow:0 14px 32px rgba(0,0,0,.18)}
+.soar-identify-banner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
+.evaluation-identify-visual>.hero-kicker,.evaluation-identify-visual>h1,.evaluation-identify-visual>p,.evaluation-identify-visual>.evaluation-identify-points{position:relative;z-index:1}
+.soar-active-banner{width:100%;height:clamp(92px,8.5vw,128px);margin:0 0 18px;overflow:hidden;border-radius:18px;border:1px solid #cadce5;background:#06142f;box-shadow:0 10px 26px rgba(7,55,99,.10)}
+.soar-active-banner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
+@media(max-width:900px){
+  .soar-identify-banner{height:clamp(92px,23vw,145px);margin-bottom:16px}
+  .soar-active-banner{height:clamp(82px,16vw,112px);margin-bottom:14px}
+}
+@media(max-width:650px){
+  .public-body.evaluation-identify-mode .soar-identify-banner{height:auto;aspect-ratio:1600/418;margin-bottom:10px;border-radius:13px;box-shadow:0 8px 20px rgba(0,0,0,.14)}
+  .public-body.evaluation-identify-mode .evaluation-identify-visual{padding-top:12px!important}
+  .public-body.evaluation-identify-mode .evaluation-identify-visual .hero-kicker{margin-top:0}
+  .public-body.evaluation-active .soar-active-banner{height:auto;aspect-ratio:1600/418;margin:0 0 9px;border-radius:12px;box-shadow:0 6px 16px rgba(7,55,99,.08)}
+}
+@media(max-width:390px){
+  .public-body.evaluation-identify-mode .soar-identify-banner{margin-bottom:8px}
+  .public-body.evaluation-identify-mode .evaluation-identify-visual{padding:10px 12px 12px!important}
+}
+
+/* v9.02 · SOAR legible, consistente y sin recortes */
+.evaluation-identify-shell{min-height:clamp(500px,calc(100dvh - 150px),690px)}
+.soar-identify-banner{height:auto!important;aspect-ratio:1600/418;margin-bottom:20px}
+.soar-identify-banner img{width:100%;height:100%;object-fit:contain!important;object-position:center;background:#06142f}
+.public-body.evaluation-active .soar-active-banner{width:min(100%,1040px);height:auto!important;aspect-ratio:1600/418;margin:0 auto 22px;border:1px solid #b9d3df;border-radius:22px;background:#06142f;box-shadow:0 18px 42px rgba(7,55,99,.16)}
+.public-body.evaluation-active .soar-active-banner img{display:block;width:100%;height:100%;object-fit:contain!important;object-position:center;background:#06142f}
+@media(max-width:900px){
+  .evaluation-identify-shell{min-height:auto}
+  .public-body.evaluation-active .soar-active-banner{width:100%;margin-bottom:16px;border-radius:16px}
+}
+@media(max-width:650px){
+  .soar-identify-banner{margin-bottom:10px!important;border-radius:13px!important}
+  .public-body.evaluation-active .soar-active-banner{aspect-ratio:1600/418;margin:0 0 10px!important;border-radius:12px!important;box-shadow:0 8px 20px rgba(7,55,99,.11)}
+}
+
+/* v9.04 · logo HEDS compacto en navbar público */
+.heds-navbar-logo{width:78px;height:42px;flex:0 0 78px;display:grid;place-items:center;overflow:hidden;border:1px solid #d7e3e9;border-radius:12px;background:#fff;box-shadow:0 6px 16px rgba(7,55,99,.07);padding:3px 5px}
+.heds-navbar-logo img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+@media(max-width:720px){
+  .heds-navbar-logo{width:48px;height:36px;flex-basis:48px;border-radius:10px;padding:2px 3px}
+  .public-brand{gap:7px}
+}
+@media(max-width:430px){
+  .heds-navbar-logo{width:42px;height:34px;flex-basis:42px}
+}
+
+
+/* v9.05 · categoría dinámica + contexto ejecutivo Preguntas + SOAR integrado */
+.portal-context-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}.portal-kind-pill,.portal-inline-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}.portal-kind-pill{min-height:27px;padding:0 11px;background:#fff;color:#073763;border:1px solid rgba(255,255,255,.72);font-size:9.5px;box-shadow:0 6px 16px rgba(0,0,0,.08)}.portal-context-kicker{color:#72e4ed;font-size:10px;font-weight:900;letter-spacing:.13em}.portal-inline-pill{margin-right:7px;padding:4px 7px;background:#073763;color:#fff;font-size:8px;vertical-align:middle;letter-spacing:.08em}.evaluation-ready-hero{grid-template-columns:auto minmax(0,1fr) minmax(190px,260px);padding:25px 26px}.evaluation-ready-copy h3{font-size:clamp(27px,3.1vw,38px);line-height:1.04;margin:5px 0 7px}.evaluation-ready-subtitle{display:block;margin:0 0 9px;color:#fff;font-size:14px}.evaluation-ready-copy .experience-description{margin:0 0 8px;color:#9ff1f4;font-weight:750}.evaluation-ready-aside{position:relative;z-index:2;display:grid;gap:10px;align-content:center}.evaluation-campaign-mark{height:74px;overflow:hidden;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:#06142f;box-shadow:0 12px 24px rgba(0,0,0,.16)}.evaluation-campaign-mark img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}.evaluation-ready-aside .evaluation-ready-person{min-width:0;display:flex;align-items:center;gap:10px;padding:10px 12px;text-align:left}.evaluation-ready-aside .evaluation-ready-person .identity-avatar{width:42px;height:42px;flex:0 0 42px;margin:0}.evaluation-ready-aside .evaluation-ready-person>span:last-child{min-width:0}.participant-welcome-row .hello-label,.quiz-participant-bar .hello-label{display:flex;align-items:center;gap:2px;flex-wrap:wrap;color:#1595a7;font-size:9px}.public-body.evaluation-active .soar-active-banner{display:none!important}
+@media(max-width:850px){.evaluation-ready-hero{grid-template-columns:auto minmax(0,1fr)}.evaluation-ready-aside{grid-column:1/-1;grid-template-columns:minmax(160px,240px) 1fr;align-items:center}.evaluation-ready-aside .evaluation-ready-person{grid-column:auto}.evaluation-campaign-mark{height:68px}}
+@media(max-width:560px){.evaluation-ready-hero{grid-template-columns:1fr;padding:18px}.evaluation-ready-icon{display:none}.evaluation-ready-copy h3{font-size:25px}.evaluation-ready-subtitle{font-size:12px}.evaluation-ready-aside{grid-column:auto;grid-template-columns:1fr;gap:8px}.evaluation-campaign-mark{height:auto;aspect-ratio:1600/418}.evaluation-ready-aside .evaluation-ready-person{display:flex;grid-column:auto}.portal-kind-pill{min-height:24px;padding:0 9px;font-size:8.5px}.portal-context-kicker{font-size:8.5px}.portal-inline-pill{font-size:7.5px}}
+
+/* v9.06 · header Preguntas uniforme con Juegos + SOAR legible + sesión persistente */
+.public-body.evaluation-active .participant-welcome-row,
+.public-body.evaluation-active .quiz-participant-bar{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:20px!important;
+  padding:18px 20px!important;margin-bottom:18px!important;background:#fff!important;
+  border:1px solid #d8e5ec!important;border-radius:22px!important;
+  box-shadow:0 10px 28px rgba(7,55,99,.06)!important;
+}
+.public-body.evaluation-active .participant-welcome-main,
+.public-body.evaluation-active .quiz-user{display:flex;align-items:center;gap:14px;min-width:0}
+.public-body.evaluation-active .identity-avatar.compact,
+.public-body.evaluation-active .quiz-avatar{
+  width:48px!important;height:48px!important;flex:0 0 48px!important;border-radius:15px!important;
+  display:grid!important;place-items:center!important;background:#e6f5f7!important;color:#073763!important;
+  font-size:12px!important;font-weight:950!important;
+}
+.public-body.evaluation-active .participant-zone-label{display:block;margin:0 0 3px;color:#1595a7;font-size:10px;font-weight:900;letter-spacing:.14em}
+.public-body.evaluation-active .participant-welcome-main h2,
+.public-body.evaluation-active .participant-greeting{display:block;margin:3px 0 2px!important;color:#073763;font-size:23px!important;line-height:1.15;font-weight:900}
+.public-body.evaluation-active .participant-welcome-main p,
+.public-body.evaluation-active .quiz-user small{display:block;margin:0;color:#6d8295;font-size:12.5px;line-height:1.35}
+.public-body.evaluation-active .participant-progress-panel{display:flex;align-items:center;gap:8px;margin-left:auto;min-width:0}
+.public-body.evaluation-active .participant-progress-metrics{display:flex;align-items:center;gap:8px;min-width:0}
+.public-body.evaluation-active .participant-progress-metrics>span{
+  min-width:94px;padding:9px 12px;border-radius:13px;background:#f1f7f9;border:1px solid #e0ebef;text-align:left
+}
+.public-body.evaluation-active .participant-progress-metrics small,
+.public-body.evaluation-active .participant-progress-metrics strong{display:block}
+.public-body.evaluation-active .participant-progress-metrics small{font-size:9.5px;color:#6d8295;font-weight:800}
+.public-body.evaluation-active .participant-progress-metrics strong{margin-top:2px;color:#073763;font-size:16px;font-weight:950}
+.public-body.evaluation-active .change-participant{
+  min-height:43px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:12px;
+  background:#dfeef1;border:1px solid #c6dfe4;color:#174e65;font-size:11.5px;font-weight:900;box-shadow:0 7px 18px rgba(7,55,99,.08)
+}
+.public-body.evaluation-active .change-participant:hover{background:#d2e7eb;color:#073763}
+.public-body.evaluation-active .change-participant .change-icon{font-size:22px;line-height:1}
+
+/* La marca SOAR se integra al hero sin recortarse ni robar una franja completa. */
+.evaluation-ready-hero{grid-template-columns:68px minmax(0,1fr) minmax(250px,310px)!important}
+.evaluation-ready-aside{width:100%;gap:10px}
+.evaluation-campaign-mark{
+  height:126px!important;padding:8px 8px 7px!important;display:grid!important;grid-template-rows:minmax(0,1fr) auto!important;gap:5px!important;
+  overflow:hidden!important;border-radius:17px!important;background:#06142f!important;border:1px solid rgba(255,255,255,.24)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.18)!important
+}
+.evaluation-campaign-mark img{width:100%!important;height:100%!important;min-height:0!important;object-fit:contain!important;object-position:center!important;border-radius:10px}
+.evaluation-campaign-mark span{display:block;color:#d9f4f6;font-size:8.5px;font-weight:900;letter-spacing:.12em;text-align:center;white-space:nowrap}
+
+@media(max-width:1120px){
+  .public-body.evaluation-active .participant-welcome-row,.public-body.evaluation-active .quiz-participant-bar{align-items:flex-start!important;flex-direction:column!important}
+  .public-body.evaluation-active .participant-progress-panel{width:100%;margin-left:0}
+  .public-body.evaluation-active .participant-progress-metrics{flex:1;flex-wrap:wrap}
+  .public-body.evaluation-active .participant-progress-metrics>span{flex:1;min-width:110px}
+  .evaluation-ready-hero{grid-template-columns:58px minmax(0,1fr)!important}
+  .evaluation-ready-aside{grid-column:1/-1;grid-template-columns:minmax(220px,320px) minmax(180px,1fr)!important;align-items:center}
+  .evaluation-campaign-mark{height:112px!important}
+}
+@media(max-width:650px){
+  .public-body.evaluation-active .participant-welcome-row,.public-body.evaluation-active .quiz-participant-bar{padding:14px!important;border-radius:18px!important;gap:12px!important}
+  .public-body.evaluation-active .participant-welcome-main h2,.public-body.evaluation-active .participant-greeting{font-size:20px!important}
+  .public-body.evaluation-active .participant-progress-panel{flex-direction:column!important}
+  .public-body.evaluation-active .participant-progress-metrics{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important}
+  .public-body.evaluation-active .participant-progress-metrics>span{min-width:0!important;width:100%}
+  .public-body.evaluation-active .change-participant{width:100%}
+  .evaluation-ready-hero{grid-template-columns:1fr!important}
+  .evaluation-ready-aside{grid-column:auto;grid-template-columns:1fr!important}
+  .evaluation-campaign-mark{height:auto!important;aspect-ratio:auto!important;min-height:112px}
+}
+
+
+/* v9.07 · Preguntas con escala visual equivalente a Juegos + arranque sin flash */
+.public-body.evaluation-booting .public-shell{visibility:hidden}
+.public-body.evaluation-booting .public-topbar{visibility:visible}
+
+@media (min-width:1100px){
+  .public-body.evaluation-active .public-shell{width:min(1480px,calc(100% - 48px))!important;padding:24px 0 28px!important}
+  .public-body.evaluation-active .evaluation-card{padding:22px 26px 26px!important;border-radius:22px!important}
+  .public-body.evaluation-active .participant-welcome-row,
+  .public-body.evaluation-active .quiz-participant-bar{padding:18px 20px!important;margin-bottom:18px!important}
+  .public-body.evaluation-active .evaluation-ready-hero{
+    min-height:300px!important;
+    padding:38px 42px!important;
+    grid-template-columns:68px minmax(0,1fr) minmax(300px,390px)!important;
+    gap:28px!important;
+    border-radius:30px!important;
+    align-items:center!important;
+  }
+  .public-body.evaluation-active .evaluation-ready-copy h3{
+    font-size:clamp(38px,5vw,64px)!important;
+    line-height:1!important;
+    letter-spacing:-.035em!important;
+    margin:8px 0 10px!important;
+  }
+  .public-body.evaluation-active .evaluation-ready-subtitle{font-size:15px!important;margin-bottom:10px!important}
+  .public-body.evaluation-active .evaluation-ready-copy p{font-size:14px!important;line-height:1.7!important;max-width:760px!important}
+  .public-body.evaluation-active .evaluation-ready-chips{margin-top:24px!important;gap:8px!important}
+  .public-body.evaluation-active .evaluation-ready-chips span{font-size:11px!important;padding:9px 12px!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{
+    width:100%!important;
+    height:154px!important;
+    padding:9px 9px 8px!important;
+    border-radius:19px!important;
+  }
+  .public-body.evaluation-active .evaluation-campaign-mark span{font-size:9px!important}
+  .public-body.evaluation-active .evaluation-ready-aside .evaluation-ready-person{padding:12px 14px!important}
+}
+@media (min-width:1500px){
+  .public-body.evaluation-active .public-shell{width:min(1560px,calc(100% - 64px))!important}
+  .public-body.evaluation-active .evaluation-ready-hero{grid-template-columns:72px minmax(0,1fr) minmax(320px,420px)!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:164px!important}
+}
+@media (max-width:1099px){
+  .public-body.evaluation-active .evaluation-ready-copy h3{font-size:clamp(30px,6vw,44px)!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{min-height:126px!important}
+}
+@media (max-width:760px){
+  .public-body.evaluation-active .evaluation-ready-hero{min-height:0!important;padding:24px 20px!important;border-radius:22px!important}
+  .public-body.evaluation-active .evaluation-ready-copy h3{font-size:34px!important}
+  .public-body.evaluation-active .evaluation-ready-copy p{font-size:12.5px!important}
+  .public-body.evaluation-active .evaluation-ready-chips{margin-top:16px!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:auto!important;min-height:112px!important}
+}
+@media (max-width:430px){
+  .public-body.evaluation-active .evaluation-ready-hero{padding:19px 16px!important}
+  .public-body.evaluation-active .evaluation-ready-copy h3{font-size:29px!important}
+}
+
+
+/* v9.08 · Preguntas adopta la escala real del portal de Juegos */
+.public-body.evaluation-active{background:radial-gradient(circle at 8% 0,#e4f6f8 0,transparent 28%),#f3f8fa!important}
+.public-body.evaluation-active .public-nav{width:min(1480px,calc(100% - 48px))!important;height:76px!important}
+.public-body.evaluation-active .evaluation-card{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;border-radius:0!important}
+.public-body.evaluation-active .participant-welcome-row{margin-bottom:18px!important;padding:20px 22px!important;border-radius:22px!important;box-shadow:0 12px 30px rgba(7,55,99,.06)!important}
+.public-body.evaluation-active .evaluation-ready-hero{min-height:300px!important;padding:38px 42px!important;border-radius:30px!important;grid-template-columns:minmax(0,1fr) minmax(300px,390px)!important;gap:30px!important;align-items:center!important}
+.public-body.evaluation-active .evaluation-ready-icon{position:absolute!important;left:42px!important;top:50%!important;transform:translateY(-50%)!important;width:58px!important;height:58px!important;z-index:3!important;opacity:.96}
+.public-body.evaluation-active .evaluation-ready-copy{padding-left:104px!important}
+.public-body.evaluation-active .evaluation-ready-copy h3{font-size:clamp(38px,5vw,64px)!important;line-height:1!important;letter-spacing:-.04em!important;margin:8px 0 10px!important}
+.public-body.evaluation-active .evaluation-ready-aside{width:100%!important;display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+.public-body.evaluation-active .evaluation-campaign-mark{height:138px!important}
+.public-body.evaluation-active .evaluation-ready-person{min-height:62px!important}
+.public-body.evaluation-active .evaluation-start-guide{margin-top:14px!important}
+.public-body.evaluation-active .wizard-actions{margin-top:18px!important}
+@media(min-width:1500px){.public-body.evaluation-active .public-nav{width:min(1560px,calc(100% - 64px))!important}}
+@media(max-width:1120px){
+  .public-body.evaluation-active .public-nav{width:min(100% - 24px,1120px)!important}
+  .public-body.evaluation-active .evaluation-ready-hero{grid-template-columns:1fr!important;padding:28px 24px!important}
+  .public-body.evaluation-active .evaluation-ready-icon{position:static!important;transform:none!important;width:54px!important;height:54px!important;margin-bottom:-2px!important}
+  .public-body.evaluation-active .evaluation-ready-copy{padding-left:0!important}
+  .public-body.evaluation-active .evaluation-ready-aside{grid-template-columns:minmax(220px,320px) minmax(180px,1fr)!important}
+}
+@media(max-width:650px){
+  .public-body.evaluation-active .evaluation-ready-hero{padding:22px 18px!important;border-radius:22px!important;gap:18px!important}
+  .public-body.evaluation-active .evaluation-ready-aside{grid-template-columns:1fr!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:auto!important;min-height:112px!important}
+}
+
+/* v9.09 · Preguntas calcada al flujo y escala visual de Juegos */
+.public-body.evaluation-active .public-topbar{
+  background:rgba(255,255,255,.93)!important;
+  backdrop-filter:blur(18px)!important;
+  border-bottom:1px solid #d8e5ec!important;
+}
+.public-body.evaluation-active .public-nav{
+  max-width:1480px!important;
+  width:min(1480px,calc(100% - 48px))!important;
+  min-height:76px!important;
+  height:auto!important;
+  padding:10px 24px!important;
+  gap:18px!important;
+}
+.public-body.evaluation-active .public-brand{gap:12px!important}
+.public-body.evaluation-active .public-brand strong{font-size:14px!important;color:#102f4c!important}
+.public-body.evaluation-active .public-brand small{font-size:11px!important;color:#6d8295!important;margin-top:2px!important}
+.public-body.evaluation-active .public-nav-actions{display:flex!important;align-items:center!important;gap:8px!important}
+.public-body.evaluation-active .sound-toggle,
+.public-body.evaluation-active .screen-control,
+.public-body.evaluation-active .public-nav .admin-access{
+  min-height:42px!important;height:42px!important;border:1px solid #cde2e6!important;background:#e4f1f3!important;
+  color:#174e65!important;text-decoration:none!important;font:inherit!important;font-size:12.5px!important;font-weight:850!important;
+  padding:0 13px!important;border-radius:12px!important;cursor:pointer!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;gap:7px!important;transition:.16s!important;white-space:nowrap!important
+}
+.public-body.evaluation-active .sound-toggle:hover,
+.public-body.evaluation-active .screen-control:hover,
+.public-body.evaluation-active .public-nav .admin-access:hover,
+.public-body.evaluation-active .screen-control.is-active{
+  background:#073763!important;border-color:#073763!important;color:#fff!important;transform:translateY(-1px)!important
+}
+.public-body.evaluation-active .public-nav .site-switch .site-link{font-size:11.5px!important}
+
+/* Quita el centrado vertical antiguo que generaba el espacio vacío sobre Preguntas. */
+.public-body.evaluation-active .public-shell{
+  display:block!important;min-height:0!important;width:min(1480px,calc(100% - 48px))!important;
+  margin:24px auto 32px!important;padding:0!important
+}
+.public-body.evaluation-active .evaluation-card{
+  width:100%!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important
+}
+.public-body.evaluation-active .public-shell>footer{margin-top:28px!important;padding:20px 12px 10px!important}
+
+/* 1. Saludo + métricos: mismo card y proporción del portal de Juegos. */
+.public-body.evaluation-active .participant-welcome-row,
+.public-body.evaluation-active .quiz-participant-bar{
+  width:100%!important;margin:0 0 18px!important;padding:20px 22px!important;border:1px solid #d8e5ec!important;
+  border-radius:22px!important;background:#fff!important;box-shadow:0 10px 30px rgba(7,55,99,.06)!important
+}
+.public-body.evaluation-active .participant-welcome-main h2{font-size:25px!important}
+.public-body.evaluation-active .participant-welcome-main p{font-size:13px!important}
+.public-body.evaluation-active .participant-progress-metrics>span{min-width:105px!important;padding:10px 13px!important}
+.public-body.evaluation-active .participant-progress-metrics strong{font-size:17px!important}
+
+/* 2. Hero: misma composición de Juegos; texto a la izquierda, SOAR y participante a la derecha. */
+.public-body.evaluation-active .evaluation-ready-hero{
+  min-height:300px!important;padding:38px 42px!important;border-radius:30px!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(300px,430px)!important;
+  gap:30px!important;align-items:center!important;margin:0!important
+}
+.public-body.evaluation-active .evaluation-ready-icon{display:none!important}
+.public-body.evaluation-active .evaluation-ready-copy{padding-left:0!important;min-width:0!important}
+.public-body.evaluation-active .evaluation-ready-copy h3{
+  font-size:clamp(38px,5vw,64px)!important;line-height:1!important;letter-spacing:-.04em!important;margin:8px 0 10px!important
+}
+.public-body.evaluation-active .evaluation-ready-copy .experience-description{max-width:760px!important;margin:0 0 8px!important;color:#8ff0f3!important;font-weight:800!important}
+.public-body.evaluation-active .evaluation-ready-copy>p{max-width:760px!important;font-size:14px!important;line-height:1.7!important;color:#d8edf4!important}
+.public-body.evaluation-active .evaluation-ready-chips{display:flex!important;gap:8px!important;flex-wrap:wrap!important;margin-top:24px!important}
+.public-body.evaluation-active .evaluation-ready-chips span{padding:9px 12px!important;font-size:11px!important}
+.public-body.evaluation-active .evaluation-ready-aside{width:100%!important;display:grid!important;grid-template-columns:1fr!important;gap:10px!important;align-items:stretch!important}
+.public-body.evaluation-active .evaluation-campaign-mark{
+  width:100%!important;height:118px!important;padding:8px 8px 7px!important;border-radius:18px!important;
+  display:grid!important;grid-template-rows:minmax(0,1fr) auto!important;gap:5px!important
+}
+.public-body.evaluation-active .evaluation-campaign-mark img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+.public-body.evaluation-active .evaluation-ready-person{
+  min-height:62px!important;width:100%!important;padding:11px 13px!important;border-radius:17px!important;
+  display:flex!important;align-items:center!important;gap:10px!important;text-align:left!important
+}
+.public-body.evaluation-active .evaluation-ready-person .identity-avatar{margin:0!important;flex:0 0 auto!important}
+
+/* 3. Contenido debajo del hero sin huecos artificiales. */
+.public-body.evaluation-active .resume-note{margin:12px 0 0!important}
+.public-body.evaluation-active .evaluation-start-guide{margin:14px 0 0!important}
+.public-body.evaluation-active .wizard-actions{margin:18px 0 0!important}
+
+@media(min-width:1500px){
+  .public-body.evaluation-active .public-nav{max-width:1560px!important;width:min(1560px,calc(100% - 64px))!important}
+  .public-body.evaluation-active .public-shell{width:min(1560px,calc(100% - 64px))!important}
+}
+@media(max-width:1120px){
+  .public-body.evaluation-active .public-nav{width:min(100% - 24px,1120px)!important;padding:8px 12px!important}
+  .public-body.evaluation-active .public-shell{width:min(100% - 24px,1120px)!important;margin:16px auto 24px!important}
+  .public-body.evaluation-active .evaluation-ready-hero{grid-template-columns:1fr!important;padding:28px 24px!important}
+  .public-body.evaluation-active .evaluation-ready-aside{grid-template-columns:minmax(220px,320px) minmax(180px,1fr)!important;align-items:center!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:112px!important}
+}
+@media(max-width:1050px){
+  .public-body.evaluation-active .sound-toggle span,
+  .public-body.evaluation-active .screen-control span,
+  .public-body.evaluation-active .admin-access span{display:none!important}
+  .public-body.evaluation-active .sound-toggle,
+  .public-body.evaluation-active .screen-control,
+  .public-body.evaluation-active .admin-access{width:42px!important;padding:0!important}
+}
+@media(max-width:720px){
+  .public-body.evaluation-active .public-nav{min-height:68px!important;padding:7px 8px!important;gap:8px!important}
+  .public-body.evaluation-active .public-brand{flex:1 1 auto!important;min-width:0!important;gap:8px!important}
+  .public-body.evaluation-active .public-brand strong{font-size:11.5px!important;max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .public-body.evaluation-active .public-brand small{display:none!important}
+  .public-body.evaluation-active .sound-toggle{display:none!important}
+  .public-body.evaluation-active .public-shell{width:min(100% - 16px,620px)!important;margin:10px auto 20px!important}
+  .public-body.evaluation-active .participant-welcome-row{padding:14px!important;border-radius:18px!important;gap:12px!important}
+  .public-body.evaluation-active .participant-progress-metrics{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
+  .public-body.evaluation-active .participant-progress-metrics>span{min-width:0!important;width:100%!important}
+  .public-body.evaluation-active .evaluation-ready-hero{padding:22px 18px!important;border-radius:22px!important;gap:18px!important}
+  .public-body.evaluation-active .evaluation-ready-aside{grid-template-columns:1fr!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:auto!important;min-height:112px!important}
+}
+
+/* v9.10 · paridad real de escala con Juegos */
+@media (min-width:1100px){
+  .public-body.evaluation-active .participant-welcome-row,
+  .public-body.evaluation-active .quiz-participant-bar{
+    padding:20px 22px!important;
+    border-radius:22px!important;
+    margin-bottom:18px!important;
+  }
+  .public-body.evaluation-active .participant-welcome-main h2,
+  .public-body.evaluation-active .participant-greeting{font-size:25px!important;line-height:1.12!important}
+  .public-body.evaluation-active .evaluation-ready-hero{
+    min-height:300px!important;
+    padding:38px 42px!important;
+    border-radius:30px!important;
+    gap:30px!important;
+  }
+  .public-body.evaluation-active .evaluation-ready-copy h3{
+    font-size:64px!important;
+    line-height:1!important;
+    margin:8px 0 10px!important;
+  }
+  .public-body.evaluation-active .evaluation-ready-subtitle{font-size:15px!important;line-height:1.4!important}
+  .public-body.evaluation-active .evaluation-ready-copy>p{font-size:14px!important;line-height:1.7!important}
+  .public-body.evaluation-active .evaluation-ready-chips span{font-size:11px!important;padding:9px 12px!important}
+  .public-body.evaluation-active .evaluation-ready-aside{width:min(390px,31vw)!important;justify-self:end!important}
+  .public-body.evaluation-active .evaluation-campaign-mark{height:138px!important}
+  .public-body.evaluation-active .evaluation-ready-person{min-height:62px!important}
+}
+@media (min-width:1500px){
+  .public-body.evaluation-active .public-shell,
+  .public-body.evaluation-active .public-nav{width:min(1560px,calc(100% - 64px))!important;max-width:1560px!important}
+}

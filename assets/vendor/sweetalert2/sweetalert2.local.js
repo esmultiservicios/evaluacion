@@ -7,7 +7,8 @@
     logout:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>',
     trash:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"/></svg>'
   };
-  function buttonContent(icon,text){return `<span class="swal2-local-btn-icon">${icons[icon]||icons.check}</span><span>${esc(text)}</span>`}
+  function cleanButtonText(text){return String(text??'').replace(/^[\s\u2713\u2714\u2715\u2716\u00d7\u21bb\u21ba\u2192\u2190]+/u,'').trim()}
+  function buttonContent(icon,text){return `<span class="swal2-local-btn-icon">${icons[icon]||icons.check}</span><span>${esc(cleanButtonText(text))}</span>`}
   function fire(input){const o=typeof input==='string'?{title:input}:(input||{});return new Promise(resolve=>{
     const back=d.createElement('div');back.className='swal2-local-backdrop';
     const pop=d.createElement('div');pop.className='swal2-local-popup';pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');

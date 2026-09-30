@@ -171,3 +171,162 @@ body.game-play-body .games-footer,body.games-identify-body .games-footer{flex:0 
   .games-shell.is-game-identify .identify-card h2{font-size:21px}
   .games-shell.is-game-identify .identify-card>p{margin-bottom:8px;font-size:10.5px}
 }
+
+/* v8.98 — botones de acción del juego claros y táctiles en móvil */
+.neutral-next{display:grid;gap:8px;margin-top:16px;width:100%}
+.neutral-next .next-btn,.challenge-content .next-btn,.challenge-gate .next-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;height:auto;padding:13px 18px;border:0;border-radius:14px;background:#073763;color:#fff;font:inherit;font-size:13px;font-weight:900;line-height:1.25;text-align:center;white-space:normal;box-shadow:0 8px 18px rgba(7,55,99,.16);cursor:pointer;appearance:none;-webkit-appearance:none}
+.neutral-next .next-btn:not(:disabled):hover,.challenge-content .next-btn:not(:disabled):hover,.challenge-gate .next-btn:not(:disabled):hover{background:#0b487c;transform:translateY(-1px)}
+.neutral-next .next-btn:focus-visible,.challenge-content .next-btn:focus-visible,.challenge-gate .next-btn:focus-visible{outline:3px solid rgba(21,156,174,.28);outline-offset:2px}
+.neutral-next .next-btn:disabled,.challenge-content .next-btn:disabled,.challenge-gate .next-btn:disabled{background:#dbe6eb;color:#718797;box-shadow:none;opacity:1;cursor:not-allowed}
+.neutral-next .no-feedback-note{display:block;width:100%;color:#60798a;font-size:11.5px;line-height:1.45;text-align:center}
+@media(max-width:650px){.neutral-next{margin-top:13px;gap:7px}.neutral-next .next-btn,.challenge-content .next-btn,.challenge-gate .next-btn{min-height:50px;padding:13px 14px;border-radius:13px;font-size:13px;letter-spacing:0;box-shadow:0 7px 16px rgba(7,55,99,.18)}.neutral-next .no-feedback-note{padding:0 4px;font-size:10.5px}.challenge-content{width:100%}}
+
+/* v8.99 · portal de juegos más amplio, legible y responsive */
+@media (min-width:1100px){
+  .games-nav{max-width:1480px;min-height:76px;padding-left:24px;padding-right:24px}
+  .games-shell.is-games-list{width:min(1480px,calc(100% - 48px));margin:24px auto 32px}
+  .games-shell.is-games-list .player-welcome-bar,.games-shell.is-games-list .portal-result-summary{width:100%}
+  .games-shell.is-games-list .section-head{margin-top:30px}
+  .games-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+  .game-card{min-height:350px;padding:24px;border-radius:24px}
+  .game-icon{width:58px;height:58px;border-radius:18px;font-size:29px}
+  .difficulty{font-size:10.5px;padding:7px 10px}
+  .game-card-visual{height:138px;margin:16px 0 4px;border-radius:17px}
+  .game-card .game-category{font-size:10.5px;margin-top:15px}
+  .game-card h3{font-size:22px;line-height:1.2;margin:7px 0 9px}
+  .game-card p{font-size:14px;line-height:1.6}
+  .game-card-foot{font-size:12.5px;padding-top:20px}.game-card-foot b{width:38px;height:38px;border-radius:12px}
+  .player-welcome-bar{padding:20px 22px}.player-welcome-main h2{font-size:25px}.player-welcome-main p{font-size:13px}
+  .player-progress>span{min-width:105px;padding:10px 13px}.player-progress strong{font-size:17px}
+  .portal-result-summary{padding:22px 26px}.portal-result-summary h3{font-size:1.35rem}.portal-result-summary p{font-size:13.5px}
+  .portal-result-metrics span{min-width:118px;padding:12px 15px}
+}
+@media (min-width:1500px){
+  .games-nav{max-width:1560px}
+  .games-shell.is-games-list{width:min(1560px,calc(100% - 64px))}
+  .games-grid{gap:22px}
+  .game-card{min-height:365px}
+  .game-card-visual{height:148px}
+}
+@media (min-width:901px) and (max-width:1199px){
+  .games-shell.is-games-list{width:min(100% - 32px,1120px)}
+  .games-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .game-card{min-height:330px}.game-card-visual{height:125px}.game-card h3{font-size:20px}.game-card p{font-size:13.5px}
+}
+@media (min-width:651px) and (max-width:900px){
+  .games-shell.is-games-list{width:min(100% - 24px,860px)}
+  .games-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+  .game-card{min-height:320px}.game-card-visual{height:128px}.game-card h3{font-size:20px}.game-card p{font-size:13.5px}
+}
+@media (max-width:650px){
+  .games-shell.is-games-list{width:min(100% - 16px,620px);margin:10px auto 20px}
+  .games-grid{grid-template-columns:1fr;gap:12px}
+  .game-card{min-height:0;padding:17px;border-radius:18px}
+  .game-card-visual{height:128px;margin:12px 0 3px}
+  .game-card h3{font-size:19px}.game-card p{font-size:13px;line-height:1.5}
+  .game-card-foot{padding-top:15px}
+}
+
+
+/* v9.01 · identidad visual SOAR integrada en acceso y portal de juegos */
+.games-shell .soar-identify-banner{position:relative;z-index:1;width:100%;height:clamp(108px,14vw,170px);margin:0 0 22px;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.18);background:#06142f;box-shadow:0 14px 32px rgba(0,0,0,.18)}
+.games-shell .soar-identify-banner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
+.identify-visual>.hero-kicker,.identify-visual>h1,.identify-visual>p,.identify-visual>.identify-points{position:relative;z-index:1}
+.games-shell .soar-active-banner{width:100%;height:clamp(92px,8.5vw,128px);margin:0 0 18px;overflow:hidden;border-radius:18px;border:1px solid #cadce5;background:#06142f;box-shadow:0 10px 26px rgba(7,55,99,.10)}
+.games-shell .soar-active-banner img{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
+@media(max-width:900px){
+  .games-shell .soar-identify-banner{height:clamp(92px,23vw,145px);margin-bottom:16px}
+  .games-shell .soar-active-banner{height:clamp(82px,16vw,112px);margin-bottom:14px}
+}
+@media(max-width:650px){
+  .games-shell.is-game-identify .soar-identify-banner{height:auto;aspect-ratio:1600/418;margin-bottom:10px;border-radius:13px;box-shadow:0 8px 20px rgba(0,0,0,.14)}
+  .games-shell.is-game-identify .identify-visual{padding-top:12px!important}
+  .games-shell.is-games-list .soar-active-banner{height:auto;aspect-ratio:1600/418;margin:0 0 10px;border-radius:12px;box-shadow:0 6px 16px rgba(7,55,99,.08)}
+}
+@media(max-width:390px){
+  .games-shell.is-game-identify .soar-identify-banner{margin-bottom:8px}
+  .games-shell.is-game-identify .identify-visual{padding:10px 12px 12px!important}
+}
+
+/* v9.02 · SOAR legible, mismo formato que Preguntas y cambio de participante seguro */
+.games-shell.is-game-identify .game-identify-shell{min-height:clamp(500px,calc(100dvh - 150px),690px)}
+.games-shell .soar-identify-banner{height:auto!important;aspect-ratio:1600/418;margin-bottom:20px}
+.games-shell .soar-identify-banner img{width:100%;height:100%;object-fit:contain!important;object-position:center;background:#06142f}
+.games-shell.is-games-list .soar-active-banner{width:min(100%,1040px);height:auto!important;aspect-ratio:1600/418;margin:0 auto 22px;border:1px solid #b9d3df;border-radius:22px;background:#06142f;box-shadow:0 18px 42px rgba(7,55,99,.16)}
+.games-shell.is-games-list .soar-active-banner img{display:block;width:100%;height:100%;object-fit:contain!important;object-position:center;background:#06142f}
+.player-progress>a[data-game-change-participant]{box-shadow:0 7px 18px rgba(7,55,99,.08)}
+@media(max-width:900px){
+  .games-shell.is-game-identify .game-identify-shell{min-height:auto}
+  .games-shell.is-games-list .soar-active-banner{width:100%;margin-bottom:16px;border-radius:16px}
+}
+@media(max-width:650px){
+  .games-shell .soar-identify-banner{margin-bottom:10px!important;border-radius:13px!important}
+  .games-shell.is-games-list .soar-active-banner{aspect-ratio:1600/418;margin:0 0 10px!important;border-radius:12px!important;box-shadow:0 8px 20px rgba(7,55,99,.11)}
+}
+
+
+/* v9.03 · identificación de Juegos al mismo tamaño que Preguntas */
+@media (min-width:1100px){
+  .games-shell.is-game-identify{width:min(1440px,calc(100% - 48px));max-width:none;margin:26px auto 28px}
+  .games-shell.is-game-identify .game-identify-shell{width:100%;max-width:1320px;grid-template-columns:1.08fr .92fr;min-height:clamp(500px,calc(100dvh - 150px),690px)}
+  .games-shell.is-game-identify .identify-visual{padding:clamp(30px,5vw,58px)}
+  .games-shell.is-game-identify .identify-card{padding:clamp(28px,5vw,52px)}
+  .games-shell.is-game-identify .identify-card h2{font-size:32px}
+}
+@media (min-width:1500px){
+  .games-shell.is-game-identify{width:min(1520px,calc(100% - 64px))}
+  .games-shell.is-game-identify .game-identify-shell{max-width:1400px}
+}
+
+/* v9.04 · identificación de Juegos calcada al tamaño de Preguntas + logo HEDS */
+.heds-navbar-logo{width:78px;height:42px;flex:0 0 78px;display:grid;place-items:center;overflow:hidden;border:1px solid #d7e3e9;border-radius:12px;background:#fff;box-shadow:0 6px 16px rgba(7,55,99,.07);padding:3px 5px}
+.heds-navbar-logo img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+@media (min-width:1100px){
+  body.games-identify-body .games-shell.is-game-identify{width:min(1440px,calc(100% - 48px))!important;max-width:none!important;margin:26px auto 28px!important}
+  body.games-identify-body .games-shell.is-game-identify .game-identify-shell{width:100%!important;max-width:1320px!important;min-height:clamp(500px,calc(100dvh - 150px),690px)!important;grid-template-columns:1.08fr .92fr!important;gap:18px!important;margin:0 auto!important}
+  body.games-identify-body .games-shell.is-game-identify .identify-visual{padding:clamp(30px,5vw,58px)!important}
+  body.games-identify-body .games-shell.is-game-identify .identify-card{padding:clamp(28px,5vw,52px)!important}
+  body.games-identify-body .games-shell.is-game-identify .identify-visual h1{font-size:clamp(38px,6vw,62px)!important}
+  body.games-identify-body .games-shell.is-game-identify .identify-card h2{font-size:32px!important}
+}
+@media (min-width:1500px){
+  body.games-identify-body .games-shell.is-game-identify{width:min(1520px,calc(100% - 64px))!important}
+  body.games-identify-body .games-shell.is-game-identify .game-identify-shell{max-width:1400px!important}
+}
+@media(max-width:720px){
+  .heds-navbar-logo{width:48px;height:36px;flex-basis:48px;border-radius:10px;padding:2px 3px}
+  .games-brand{gap:7px}
+}
+@media(max-width:430px){
+  .heds-navbar-logo{width:42px;height:34px;flex-basis:42px}
+}
+
+
+/* v9.05 · categoría dinámica + contexto ejecutivo Juegos + SOAR integrado */
+.games-shell.is-games-list .soar-active-banner{display:none!important}.games-hero{min-height:300px;padding:38px 42px}.games-hero-copy{position:relative;z-index:2;min-width:0;flex:1}.portal-context-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}.portal-kind-pill{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 12px;border-radius:999px;background:#fff;color:#073763;border:1px solid rgba(255,255,255,.72);box-shadow:0 6px 16px rgba(0,0,0,.08);font-size:9.5px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}.portal-context-kicker{color:#6ee6f0;font-size:10px;font-weight:900;letter-spacing:.13em}.games-hero h1{font-size:clamp(38px,5vw,64px);line-height:1;margin:8px 0 10px}.games-hero .experience-description{max-width:760px;margin:0 0 8px;color:#8ff0f3;font-weight:800}.games-hero-aside{position:relative;z-index:2;width:min(360px,30vw);flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:12px;align-items:center}.games-hero-campaign{height:112px;overflow:hidden;border-radius:18px;border:1px solid rgba(255,255,255,.2);background:#06142f;box-shadow:0 14px 30px rgba(0,0,0,.18)}.games-hero-campaign img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}.games-hero-aside .hero-orbit{width:118px}.games-hero-aside .hero-orbit span{font-size:40px}.games-hero-aside .hero-orbit b{width:42px;height:42px;right:-3px;top:6px;font-size:18px}.games-hero-aside .hero-orbit small{bottom:15px;font-size:9px;text-align:center}.play-location{display:flex;align-items:center;gap:8px;min-width:0}.play-location .back-link{flex:0 0 auto}.play-portal-label{display:inline-flex;align-items:center;min-height:25px;padding:0 9px;border-radius:999px;background:#073763;color:#fff;font-size:8.5px;font-weight:950;letter-spacing:.1em}.play-location strong{max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#073763;font-size:11px}
+@media(max-width:980px){.games-hero{align-items:stretch}.games-hero-aside{width:250px;grid-template-columns:1fr}.games-hero-campaign{height:92px}.games-hero-aside .hero-orbit{display:none}}
+@media(max-width:760px){.games-hero{display:grid;grid-template-columns:1fr;padding:24px 20px;min-height:0}.games-hero-aside{width:100%;grid-template-columns:1fr}.games-hero-campaign{height:auto;aspect-ratio:1600/418;border-radius:14px}.games-hero h1{font-size:34px}.games-hero p{font-size:12.5px}.hero-badges{margin-top:16px}.portal-kind-pill{min-height:24px;padding:0 9px;font-size:8.5px}.portal-context-kicker{font-size:8.5px}.play-location strong{max-width:145px}}
+@media(max-width:430px){.games-hero{padding:19px 16px}.games-hero h1{font-size:29px}.games-hero-campaign{border-radius:11px}.play-location strong{display:none}}
+
+/* v9.06 · SOAR integrado y completamente legible en Juegos */
+.games-hero-aside{width:min(430px,34vw);grid-template-columns:minmax(250px,1fr) 118px;gap:14px}
+.games-hero-campaign{
+  height:126px!important;padding:8px 8px 7px;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:5px;
+  overflow:hidden;border-radius:18px;border:1px solid rgba(255,255,255,.24);background:#06142f;box-shadow:0 14px 30px rgba(0,0,0,.18)
+}
+.games-hero-campaign img{display:block;width:100%;height:100%;min-height:0;object-fit:contain!important;object-position:center!important;border-radius:10px}
+.games-hero-campaign span{display:block;color:#d9f4f6;font-size:8.5px;font-weight:900;letter-spacing:.12em;text-align:center;white-space:nowrap}
+@media(max-width:1100px){.games-hero-aside{width:300px;grid-template-columns:1fr}.games-hero-campaign{height:112px!important}.games-hero-aside .hero-orbit{display:none}}
+@media(max-width:760px){.games-hero-aside{width:100%}.games-hero-campaign{height:auto!important;min-height:112px;aspect-ratio:auto!important}}
+
+
+/* v9.08 · categoría activa + bloque SOAR/participante alineado con Preguntas */
+.games-hero-aside{width:min(390px,31vw)!important;display:grid!important;grid-template-columns:1fr!important;gap:10px!important;align-items:stretch!important}
+.games-hero-campaign{width:100%!important;height:138px!important;padding:8px 8px 7px!important;display:grid!important;grid-template-rows:minmax(0,1fr) auto!important;gap:5px!important;overflow:hidden!important;border-radius:18px!important}
+.games-hero-campaign img{width:100%!important;height:100%!important;min-height:0!important;object-fit:contain!important;object-position:center!important;border-radius:10px!important;background:#06142f!important}
+.games-hero-campaign span{display:block!important;color:#d9f4f6!important;font-size:8.5px!important;font-weight:900!important;letter-spacing:.12em!important;text-align:center!important;white-space:nowrap!important}
+.games-hero-person{min-height:62px;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.12);backdrop-filter:blur(5px)}
+.games-hero-person .player-avatar{width:44px;height:44px;flex:0 0 44px;border-radius:13px;background:#fff;color:#073763;display:grid;place-items:center;font-size:12px;font-weight:950}
+.games-hero-person>span:last-child{display:block;min-width:0}.games-hero-person strong,.games-hero-person small{display:block}.games-hero-person strong{color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.games-hero-person small{margin-top:3px;color:#d7edf2;font-size:10px;font-weight:700}
+@media(max-width:1100px){.games-hero-aside{width:300px!important}.games-hero-campaign{height:118px!important}}
+@media(max-width:760px){.games-hero-aside{width:100%!important}.games-hero-campaign{height:auto!important;min-height:112px!important}.games-hero-person{min-height:58px}}

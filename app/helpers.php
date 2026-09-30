@@ -24,6 +24,26 @@ function audit(string $action,string $entityType='',?int $entityId=null,string $
 function flash(string $type,string $message): void { $_SESSION['flash']=['type'=>$type,'message'=>$message]; }
 function pull_flash(): ?array { $f=$_SESSION['flash']??null;unset($_SESSION['flash']);return $f; }
 
+function resolve_content_group(array $employee,string $portal='questions'): array {
+    $portal=$portal==='games'?'games':'questions';
+    $visibilityColumn=$portal==='games'?'game_visible':'question_visible';
+    $primaryColumn=$portal==='games'?'game_group':'question_group';
+    $secondaryColumn=$portal==='games'?'question_group':'game_group';
+    $candidates=[];
+    foreach([$employee[$primaryColumn]??'', $employee[$secondaryColumn]??''] as $candidate){
+        $candidate=trim((string)$candidate);
+        if($candidate!==''&&!in_array($candidate,$candidates,true))$candidates[]=$candidate;
+    }
+    foreach($candidates as $candidate){
+        $st=db()->prepare("SELECT name,description,active,question_visible,game_visible FROM content_groups WHERE name=? AND active=1 AND {$visibilityColumn}=1 LIMIT 1");
+        $st->execute([$candidate]);
+        if($row=$st->fetch()) return ['name'=>(string)$row['name'],'description'=>(string)($row['description']??''),'source'=>'assigned'];
+    }
+    $st=db()->query("SELECT name,description FROM content_groups WHERE active=1 AND {$visibilityColumn}=1 ORDER BY updated_at DESC,id DESC LIMIT 1");
+    if($row=$st->fetch()) return ['name'=>(string)$row['name'],'description'=>(string)($row['description']??''),'source'=>'active'];
+    return ['name'=>'','description'=>'','source'=>'none'];
+}
+
 function ensure_runtime_schema(): void {
     static $done=false; if($done) return; $done=true;
     try{
@@ -106,7 +126,9 @@ function ensure_runtime_schema(): void {
         $ensureColumn('games','group_name',"VARCHAR(120) NULL AFTER category");
         $ensureColumn('employees','question_group',"VARCHAR(120) NULL AFTER department");
         $ensureColumn('employees','game_group',"VARCHAR(120) NULL AFTER question_group");
-        db()->exec("CREATE TABLE IF NOT EXISTS content_groups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL UNIQUE, description VARCHAR(500) NULL, active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        db()->exec("CREATE TABLE IF NOT EXISTS content_groups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL UNIQUE, description VARCHAR(500) NULL, active TINYINT(1) NOT NULL DEFAULT 1, question_visible TINYINT(1) NOT NULL DEFAULT 1, game_visible TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $ensureColumn('content_groups','question_visible',"TINYINT(1) NOT NULL DEFAULT 1 AFTER active");
+        $ensureColumn('content_groups','game_visible',"TINYINT(1) NOT NULL DEFAULT 1 AFTER question_visible");
         db()->exec("CREATE TABLE IF NOT EXISTS user_preferences (user_id BIGINT UNSIGNED NOT NULL, pref_key VARCHAR(120) NOT NULL, pref_value VARCHAR(255) NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY(user_id,pref_key), CONSTRAINT fk_up_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $gameCount=(int)db()->query("SELECT COUNT(*) FROM games")->fetchColumn();
         if($gameCount===0 && setting('game_seed_initialized','0')!=='1'){

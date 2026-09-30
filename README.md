@@ -219,3 +219,42 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - Al salir de Reportes y volver a entrar, la vista seleccionada se restaura desde base de datos para el usuario administrativo.
 - En móvil se conserva la regla de seguridad visual: Miniatura se fuerza automáticamente para evitar desbordamientos.
 - Se conservan las exportaciones Excel/PDF de Categorías incorporadas en v8.9.4.
+
+## Ajuste responsive v8.99
+- Portal de evaluación ampliado en escritorio para aprovechar mejor pantallas grandes sin perder adaptación móvil/tablet.
+- Tarjetas, preguntas, resumen final y pantalla de participante con tipografía y espaciado más legibles en PC.
+- Portal de juegos ampliado hasta 4 tarjetas grandes por fila en escritorio, 3/2/1 según el ancho disponible.
+- Tarjetas de juegos con imágenes, títulos, descripción y acciones de mayor tamaño.
+- Panel administrativo optimizado para pantallas grandes y pequeñas.
+- Control de Puntuación por rapidez reconstruido visualmente para que el switch y el estado Activa/Inactiva siempre sean visibles.
+
+
+## Ajustes v9.00
+- El portal de preguntas aprovecha el ancho real de PC/laptop y aumenta la lectura de preguntas, opciones, resumen y datos del participante.
+- Se elimina el acceso redundante “Participar” del encabezado público; “Preguntas” ya representa ese sitio.
+- Puntuación por rapidez usa el mismo componente visual de switch que Notificar al completar evaluación.
+- El selector Mostrar conserva 6, 12, 24, 48 y Todo, con desplegable completo y sin recortes.
+- Se incrementan versiones de recursos para evitar estilos anteriores en caché.
+
+## Ajustes v9.05
+- El nombre visible de la experiencia deja de estar fijo como `Cyber Challenge`: ahora toma automáticamente la **Categoría / campaña** asignada al participante.
+- Renombrar una categoría desde Administración actualiza el título mostrado en los portales de Preguntas y Juegos, conservando la propagación existente hacia contenido y empleados.
+- Preguntas y Juegos muestran una etiqueta visible del portal (`PREGUNTAS` / `JUEGOS`) para que el participante identifique inmediatamente dónde se encuentra.
+- La descripción de la categoría se aprovecha como contexto ejecutivo cuando está configurada.
+- La imagen SOAR deja de ocupar un bloque independiente después de identificar al participante y pasa a integrarse dentro del hero principal de Preguntas y Juegos.
+- En el detalle de cada juego se conserva el contexto `JUEGOS` y el nombre de la categoría activa.
+
+
+## Ajustes v9.06
+- Preguntas usa un encabezado de participante uniforme con Juegos: avatar, saludo, gafete, métricas y cambio de participante.
+- La sesión del participante en Preguntas se restaura al recargar; solo se limpia al cambiar/corregir participante.
+- El progreso local de la evaluación (pregunta actual, selecciones y temporizadores) se conserva durante recargas de la misma pestaña.
+- La marca SOAR queda integrada en los heroes de Preguntas y Juegos con `object-fit: contain`, mayor área útil y etiqueta de contexto para evitar recortes.
+- Se incrementaron versiones de recursos estáticos para evitar que el navegador conserve CSS/JS anterior.
+
+
+## Ajustes v9.07
+
+- Preguntas ya no entra automáticamente al cuestionario al recargar. Si existe un participante activo, vuelve a la pantalla de confirmación con su avatar, métricas y botón **Cambiar participante**; solo entra al cuestionario al pulsar **Comenzar evaluación** o **Continuar evaluación**.
+- Se conserva la sesión del participante y el avance guardado, por lo que recargar no obliga a volver a ingresar el gafete ni borra el progreso.
+- El acceso **Administración** de los portales públicos de Preguntas y Juegos ahora abre el panel administrativo en una pestaña nueva para no sacar al participante de su pantalla actual.
