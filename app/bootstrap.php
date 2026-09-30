@@ -15,6 +15,7 @@ require_once ROOT_PATH.'/app/XlsxService.php';
 require_once ROOT_PATH.'/app/EmployeeExportService.php';
 require_once ROOT_PATH.'/app/QuestionExportService.php';
 require_once ROOT_PATH.'/app/GameExportService.php';
+require_once ROOT_PATH.'/app/ContentGroupExportService.php';
 require_once ROOT_PATH.'/app/GameAttemptReportService.php';
 load_env(ROOT_PATH.'/.env');
 if (is_file(ROOT_PATH.'/.env')) ensure_runtime_schema();

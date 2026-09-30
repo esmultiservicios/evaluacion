@@ -515,3 +515,14 @@ body.admin-loading .admin-topbar:after{content:"";position:absolute;left:0;right
 .admin-body .speed-scoring-box .premium-switch{flex:0 0 auto;min-width:112px;justify-content:flex-end;background:#fff;border:1px solid #cfe2e7;border-radius:14px;padding:9px 11px}
 .admin-body .speed-scoring-box .premium-switch b{min-width:48px;color:#244f61;font-weight:900}
 @media(max-width:520px){.admin-body .ui-modal{padding:7px!important}.admin-body .ui-modal-card{max-height:calc(100dvh - 14px)!important}.admin-body .ui-modal-card>.modal-head{padding:14px}.admin-body .ui-modal-card>form{padding:14px 14px 0}.admin-body .ui-modal-card>form>.modal-actions{margin:14px -14px 0!important;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.admin-body .speed-scoring-box{align-items:flex-start;flex-direction:column}.admin-body .speed-scoring-box .premium-switch{width:100%;justify-content:space-between}}
+
+/* v8.9.1 · Select2 uniforme y vista Detalle de categorías */
+.admin-body .group-record:has(.record-action-menu[open]){z-index:70}
+.admin-body .record-grid.view-mini .group-record .record-action-menu{justify-self:end;align-self:end}
+.admin-body .record-grid.view-detail .group-record{grid-template-columns:minmax(260px,1.15fr) minmax(390px,1fr) auto;padding:13px 14px;gap:14px;align-items:center}
+.admin-body .record-grid.view-detail .group-record .record-meta{grid-template-columns:repeat(4,minmax(90px,1fr))}
+.admin-body .record-grid.view-detail .group-record .record-action-menu{justify-self:end;align-self:center}
+.admin-body label>.s2-container{width:100%!important}
+.admin-body .form-grid label>.s2-container,.admin-body .question-form label>.s2-container{display:block}
+@media(max-width:960px){.admin-body .record-grid.view-detail .group-record{grid-template-columns:minmax(0,1fr) auto}.admin-body .record-grid.view-detail .group-record .record-meta{grid-column:1/-1;grid-row:2}.admin-body .record-grid.view-detail .group-record .record-action-menu{grid-column:2;grid-row:1}}
+@media(max-width:560px){.admin-body .record-grid.view-detail .group-record{display:flex;flex-direction:column;align-items:stretch;gap:11px;padding:14px}.admin-body .record-grid.view-detail .group-record .record-meta{grid-template-columns:1fr 1fr}.admin-body .record-grid.view-detail .group-record .record-action-menu,.admin-body .record-grid.view-detail .group-record .record-action-menu>summary{width:100%}}

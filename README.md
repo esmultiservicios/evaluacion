@@ -201,3 +201,11 @@ Sistema PHP 8.1+ / MySQL para evaluaciones cerradas con identificación por gafe
 - Grupos/campañas para preguntas y juegos. Cada empleado puede recibir un grupo de preguntas y un grupo de juegos; al cambiar de grupo se libera la participación anterior de ese módulo para recibir el nuevo contenido.
 - Preferencia Detalle/Miniatura persistida en base de datos por usuario; en móvil se fuerza Miniatura.
 - Exportación Excel/PDF en Participaciones recientes y gráficas comparativas de Evaluaciones/Juegos.
+
+## Actualización v8.9.1 — Select2 y categorías uniformes
+- Categoría/campaña de Empleados, Preguntas y Juegos ahora utiliza Select2 local real, con búsqueda y dropdown por encima de los modales.
+- El constructor de Juegos deja un único selector de Categoría/campaña; se elimina la duplicidad visual entre “Categoría” y “Grupo/campaña”.
+- Los Select2 sincronizan correctamente su valor al crear, editar, resetear formularios y navegar sin recarga completa.
+- Categorías/campañas recupera Vista Detalle/Miniatura con preferencia persistente y comportamiento responsive.
+- Categorías/campañas incorpora exportación Excel y PDF.
+- El exportador de Juegos muestra una sola columna “Categoría / campaña”.
