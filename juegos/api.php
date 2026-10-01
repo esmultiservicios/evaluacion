@@ -19,7 +19,7 @@ try{
         json_out(['ok'=>true,'employee'=>['id'=>(int)$e['id'],'badge'=>$e['badge'],'name'=>$e['name'],'department'=>$e['department']??'']]);
     }
     if($action==='complete'){
-        $gameId=(int)($_POST['game_id']??0);$empId=(int)($_POST['employee_id']??0);$correct=max(0,(int)($_POST['correct']??0));$total=max(1,(int)($_POST['total']??1));
+        $gameId=(int)($_POST['game_id']??0);$empId=(int)($_POST['employee_id']??0);$correct=max(0,(float)($_POST['correct']??0));$total=max(1,(int)($_POST['total']??1));
         if($gameId<=0||$empId<=0)throw new RuntimeException('No se pudo identificar correctamente la partida.');
         if((int)($_SESSION['participant_employee_id']??$_SESSION['game_employee_id']??0)!==$empId)throw new RuntimeException('La sesión del participante cambió. Vuelve al portal e ingresa tu gafete.');
         $pdo=db();$pdo->beginTransaction();
@@ -40,7 +40,7 @@ try{
             $answersJson=json_encode($decoded,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
         }
         $st=$pdo->prepare('INSERT INTO game_attempts(game_id,employee_id,badge_snapshot,employee_name_snapshot,accuracy_score,speed_score,score,correct_answers,total_items,response_seconds,answers_json,completed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,NOW())');
-        $st->execute([$gameId,$empId,$e['badge'],$e['name'],$accuracy,$speedMetric,$score,$correct,$total,$responseSeconds,$answersJson]);
+        $correctStored=(int)floor($correct+0.00001);$st->execute([$gameId,$empId,$e['badge'],$e['name'],$accuracy,$speedMetric,$score,$correctStored,$total,$responseSeconds,$answersJson]);
         $id=(int)$pdo->lastInsertId();$pdo->commit();
         json_out(['ok'=>true,'score'=>$score,'accuracy_score'=>$accuracy,'speed_score'=>$speedMetric,'speed_enabled'=>$speedEnabled,'response_seconds'=>round($responseSeconds,1),'attempt_id'=>$id]);
     }

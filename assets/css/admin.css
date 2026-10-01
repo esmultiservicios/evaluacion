@@ -757,28 +757,12 @@ body.admin-loading .admin-topbar:after{content:"";position:absolute;left:0;right
   .admin-heading-copy h1{font-size:16px;max-width:29vw}
 }
 
-
-/* v9.07 · texto administrativo más nítido y legible */
-body.admin-body{
-  -webkit-font-smoothing:auto;
-  text-rendering:optimizeLegibility;
-}
-body.admin-body .content-wrap,
-body.admin-body .admin-topbar,
-body.admin-body .sidebar,
-body.admin-body .ui-modal-card{transform:none!important}
-body.admin-body .panel,
-body.admin-body .record-card,
-body.admin-body .game-admin-card{font-size:1rem}
-body.admin-body .record-card p,
-body.admin-body .game-admin-card>p,
-body.admin-body .record-meta strong,
-body.admin-body .game-admin-meta strong{font-size:12.5px}
-body.admin-body .record-meta small,
-body.admin-body .game-admin-meta small{font-size:9.5px}
+/* v9.08 · el panel móvil inicia siempre con el menú lateral oculto */
+@media(max-width:1024px){.sidebar{transform:translateX(-100%)!important;transition:transform .2s ease}.sidebar.open{transform:translateX(0)!important}.admin-main{margin-left:0!important}.mobile-menu{display:grid!important}.sidebar-backdrop{display:none}.sidebar-backdrop.show{display:block!important}}
 
 
-/* v9.08 · visibilidad por portal en Categorías */
-.group-visibility-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.group-visibility{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:999px;font-style:normal;font-size:9px;font-weight:900;line-height:1}.group-visibility.is-on{background:#e7f7f4;color:#08735f}.group-visibility.is-off{background:#f1f4f6;color:#7b8994}
-@media(max-width:700px){.group-visibility-grid{grid-template-columns:1fr}}
+/* v9.11 · configuración masiva de tiempo */
+.bulk-time-note{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;border:1px solid #cfe4e9;border-radius:13px;background:#f3fafb;color:#456a7b}
+.bulk-time-note>svg{flex:0 0 20px;color:#0b7183;margin-top:1px}
+.bulk-time-note span{display:block;min-width:0}.bulk-time-note strong,.bulk-time-note small{display:block}
+.bulk-time-note strong{color:#073763;font-size:11px}.bulk-time-note small{margin-top:3px;color:#627c8c;font-size:9.8px;line-height:1.45}
