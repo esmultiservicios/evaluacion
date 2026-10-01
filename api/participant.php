@@ -11,7 +11,7 @@ try{
     if($action==='current'){
         $employeeId=(int)($_SESSION['participant_employee_id']??$_SESSION['game_employee_id']??0);
         if($employeeId<=0) json_out(['success'=>true,'active'=>false,'employee'=>null,'evaluation_status'=>null]);
-        $q=db()->prepare("SELECT id,badge,name,department,question_group FROM employees WHERE id=? AND status='active' LIMIT 1");
+        $q=db()->prepare("SELECT id,badge,name,department,question_group,game_group FROM employees WHERE id=? AND status='active' LIMIT 1");
         $q->execute([$employeeId]);
         $e=$q->fetch();
         if(!$e){
@@ -22,15 +22,10 @@ try{
         $_SESSION['participant_employee_badge']=(string)$e['badge'];
         $_SESSION['game_employee_id']=(int)$e['id'];
         $_SESSION['game_employee_badge']=(string)$e['badge'];
-        $groupName=trim((string)($e['question_group']??''));
-        $groupDescription='';
-        if($groupName!==''){
-            $gq=db()->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');
-            $gq->execute([$groupName]);
-            $groupDescription=trim((string)($gq->fetchColumn()?:''));
-        }
-        $e['question_group']=$groupName;
-        $e['group_description']=$groupDescription;
+        $group=resolve_content_group($e,'questions');
+        $e['question_group']=$group['name'];
+        $e['group_description']=$group['description'];
+        $e['group_source']=$group['source'];
         $eq=db()->prepare('SELECT status,score FROM evaluations WHERE employee_id=? LIMIT 1');
         $eq->execute([(int)$e['id']]);
         $existing=$eq->fetch()?:null;
@@ -46,14 +41,15 @@ try{
         $badge=trim((string)($_POST['badge']??''));
         if($badge==='') throw new RuntimeException('Ingresa el gafete.');
         if(!preg_match('/^[0-9]+$/',$badge)) throw new RuntimeException('El gafete solo puede contener números.');
-        $q=db()->prepare("SELECT id,badge,name,department FROM employees WHERE badge=? AND status='active' LIMIT 1");
+        $q=db()->prepare("SELECT id,badge,name,department,question_group,game_group FROM employees WHERE badge=? AND status='active' LIMIT 1");
         $q->execute([$badge]);$e=$q->fetch();
         if(!$e) json_out(['success'=>false,'message'=>'No encontramos un empleado activo con ese gafete.'],404);
         $_SESSION['participant_employee_id']=(int)$e['id'];
         $_SESSION['participant_employee_badge']=(string)$e['badge'];
         $_SESSION['game_employee_id']=(int)$e['id']; // compatibilidad con instalaciones anteriores
         $_SESSION['game_employee_badge']=(string)$e['badge'];
-        json_out(['success'=>true,'employee'=>['id'=>(int)$e['id'],'badge'=>$e['badge'],'name'=>$e['name'],'department'=>$e['department']??'']]);
+        $group=resolve_content_group($e,'questions');
+        json_out(['success'=>true,'employee'=>['id'=>(int)$e['id'],'badge'=>$e['badge'],'name'=>$e['name'],'department'=>$e['department']??'','question_group'=>$group['name'],'group_description'=>$group['description'],'group_source'=>$group['source']]]);
     }
     throw new RuntimeException('Acción no válida.');
 }catch(Throwable $e){json_out(['success'=>false,'message'=>$e->getMessage()],422);}

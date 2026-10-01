@@ -5,7 +5,7 @@ final class GroupExportService
 {
     public function rows(): array
     {
-        return db()->query("SELECT cg.id,cg.name,cg.description,cg.active,cg.created_at,
+        return db()->query("SELECT cg.id,cg.name,cg.description,cg.active,cg.question_visible,cg.game_visible,cg.created_at,
             (SELECT COUNT(*) FROM questions q WHERE q.group_name=cg.name) question_count,
             (SELECT COUNT(*) FROM games g WHERE g.group_name=cg.name) game_count,
             (SELECT COUNT(*) FROM employees e WHERE e.question_group=cg.name OR e.game_group=cg.name) employee_count
@@ -17,7 +17,7 @@ final class GroupExportService
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['ID','Categoría / campaña','Descripción','Preguntas','Juegos','Empleados','Estado','Fecha de creación']];
+        $all=[['ID','Categoría / campaña','Descripción','Preguntas','Juegos','Empleados','Preguntas visible','Juegos visible','Estado','Fecha de creación']];
         foreach($rows as $r){
             $all[]=[
                 (string)$r['id'],

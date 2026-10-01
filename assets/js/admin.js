@@ -120,10 +120,21 @@
   async function softSubmit(form,submitter=null){
     if(navigating){showNotify('info','Espera un momento: todavía se está procesando la acción anterior.');return}
     if(!form.checkValidity()){focusInvalidField(form);showNotify('danger','Completa los campos obligatorios marcados con * antes de continuar.');return}
-    const actionName=String(form.elements?.action?.value||'');
-    const keepEmployeeModal=actionName==='save_employee';
-    const employeeSnapshot=keepEmployeeModal?{
-      id:String(form.elements.id?.value||''),badge:String(form.elements.badge?.value||''),name:String(form.elements.name?.value||''),department:String(form.elements.department?.value||''),content_group:String(form.elements.content_group?.value||''),email:String(form.elements.email?.value||''),status:String(form.elements.status?.value||'active')
+    const modal=form.closest('.ui-modal');
+    const actionName=String(form.elements?.action?.value||'').trim();
+    const keepModal=!!(modal?.id&&actionName.startsWith('save_'));
+    const modalState=keepModal?{
+      modalId:modal.id,
+      formId:form.id||'',
+      title:modal.querySelector('[data-employee-modal-title],[data-user-modal-title],[data-question-modal-title],[data-game-modal-title],[data-group-modal-title]')?.textContent||'',
+      fields:[...form.elements].filter(el=>el.name&&el.type!=='file').map((el,position,all)=>({
+        name:el.name,
+        index:all.slice(0,position).filter(prev=>prev.name===el.name).length,
+        type:el.type,
+        value:el.value,
+        checked:!!el.checked,
+        values:el.multiple?[...el.selectedOptions].map(o=>o.value):null
+      }))
     }:null;
     navigating=true;d.body.classList.add('admin-loading');
     submitter=submitter||form.querySelector('button[type=submit],input[type=submit]');if(submitter){submitter.disabled=true;submitter.classList.add('is-processing')}
@@ -137,27 +148,28 @@
         const pageResponse=await fetch(next,{headers:{'X-Requested-With':'soft-navigation'}});
         if(!pageResponse.ok)throw new Error('La información se guardó, pero no se pudo actualizar la vista.');
         const html=await pageResponse.text();await applyAdminHtml(html,pageResponse.url,{push:true});
-        if(keepEmployeeModal){
-          if(employeeSnapshot?.id){
-            const refreshed=$('#employeeForm');
-            if(refreshed){
-              refreshed.elements.id.value=employeeSnapshot.id;
-              refreshed.elements.badge.value=employeeSnapshot.badge;
-              refreshed.elements.name.value=employeeSnapshot.name;
-              refreshed.elements.department.value=employeeSnapshot.department;
-              if(refreshed.elements.content_group)setSelectValue(refreshed.elements.content_group,employeeSnapshot.content_group||'')
-              refreshed.elements.email.value=employeeSnapshot.email;
-              refreshed.elements.status.value=employeeSnapshot.status||'active';
-              syncSelect(refreshed.elements.status);
-              $('[data-employee-modal-title]')?.replaceChildren(d.createTextNode('Editar empleado'));
-            }
-          }else resetEmployee();
-          openModal('employeeModal');
+        if(modalState){
+          const refreshedForm=modalState.formId?d.getElementById(modalState.formId):null;
+          if(refreshedForm){
+            modalState.fields.forEach(saved=>{
+              const candidates=[...refreshedForm.elements].filter(el=>el.name===saved.name);
+              const el=candidates[saved.index]||candidates[0];if(!el)return;
+              if(el.type==='checkbox'||el.type==='radio')el.checked=saved.checked;
+              else if(el.multiple&&Array.isArray(saved.values)){[...el.options].forEach(o=>o.selected=saved.values.includes(o.value));}
+              else if(el.tagName==='SELECT')setSelectValue(el,saved.value);
+              else el.value=saved.value;
+            });
+            syncSelects(refreshedForm);
+            const titleTarget=d.getElementById(modalState.modalId)?.querySelector('[data-employee-modal-title],[data-user-modal-title],[data-question-modal-title],[data-game-modal-title],[data-group-modal-title]');
+            if(titleTarget&&modalState.title)titleTarget.textContent=modalState.title;
+          }
+          openModal(modalState.modalId);
         }
         showNotify(j.type||'success',j.message||'Cambios guardados correctamente.');return
       }
       if(!r.ok)throw new Error('No se pudo guardar la información.');
       const html=await r.text();await applyAdminHtml(html,r.url,{push:true});
+      if(modalState)openModal(modalState.modalId);
     }
     catch(err){showNotify('danger',err.message||'No se pudo completar la acción.');}
     finally{navigating=false;d.body.classList.remove('admin-loading');if(submitter){submitter.disabled=false;submitter.classList.remove('is-processing')}}
@@ -187,8 +199,8 @@
     if(e.target.closest('[data-sidebar-backdrop]')){closeSidebar();return}
     const userTrigger=e.target.closest('[data-user-trigger]');if(userTrigger){e.stopPropagation();$('[data-user-menu]')?.classList.toggle('open');return}
     const logout=e.target.closest('.logout-link');if(logout){e.preventDefault();closeUserMenu();const result=await Swal.fire({icon:'warning',title:'¿Cerrar sesión?',text:'Tu sesión administrativa se cerrará de forma segura.',showCancelButton:true,confirmButtonText:'Sí, cerrar sesión',cancelButtonText:'Cancelar',confirmButtonIcon:'logout',cancelButtonIcon:'x',showCloseButton:true,allowOutsideClick:false});if(result.isConfirmed)window.location.href=logout.href;return}
-    const eg=e.target.closest('[data-edit-group]');if(eg){const f=$('#groupForm'),x=JSON.parse(eg.dataset.editGroup||'{}');if(f){f.elements.id.value=x.id||'';f.elements.name.value=x.name||'';f.elements.description.value=x.description||'';f.elements.active.checked=!!Number(x.active);$('[data-group-modal-title]')?.replaceChildren(d.createTextNode('Editar categoría'));openModal('groupModal');}return;}
-    const modalOpen=e.target.closest('[data-modal-open]');if(modalOpen){const id=modalOpen.dataset.modalOpen;if(modalOpen.matches('[data-new-employee]'))resetEmployee();if(modalOpen.matches('[data-new-user]'))resetUser();if(modalOpen.matches('[data-new-question]'))resetQuestion();if(modalOpen.matches('[data-new-game]'))resetGame();if(modalOpen.matches('[data-new-group]')){const f=$('#groupForm');if(f){f.reset();f.elements.id.value='';f.elements.active.checked=true;$('[data-group-modal-title]')?.replaceChildren(d.createTextNode('Nueva categoría'));}}openModal(id);return}
+    const eg=e.target.closest('[data-edit-group]');if(eg){const f=$('#groupForm'),x=JSON.parse(eg.dataset.editGroup||'{}');if(f){f.elements.id.value=x.id||'';f.elements.name.value=x.name||'';f.elements.description.value=x.description||'';f.elements.active.checked=!!Number(x.active);if(f.elements.question_visible)f.elements.question_visible.checked=x.question_visible===undefined?true:!!Number(x.question_visible);if(f.elements.game_visible)f.elements.game_visible.checked=x.game_visible===undefined?true:!!Number(x.game_visible);$('[data-group-modal-title]')?.replaceChildren(d.createTextNode('Editar categoría'));openModal('groupModal');}return;}
+    const modalOpen=e.target.closest('[data-modal-open]');if(modalOpen){const id=modalOpen.dataset.modalOpen;if(modalOpen.matches('[data-new-employee]'))resetEmployee();if(modalOpen.matches('[data-new-user]'))resetUser();if(modalOpen.matches('[data-new-question]'))resetQuestion();if(modalOpen.matches('[data-new-game]'))resetGame();if(modalOpen.matches('[data-new-group]')){const f=$('#groupForm');if(f){f.reset();f.elements.id.value='';f.elements.active.checked=true;if(f.elements.question_visible)f.elements.question_visible.checked=true;if(f.elements.game_visible)f.elements.game_visible.checked=true;$('[data-group-modal-title]')?.replaceChildren(d.createTextNode('Nueva categoría'));}}openModal(id);return}
     const modalClose=e.target.closest('[data-modal-close]');if(modalClose){closeModal(modalClose.closest('.ui-modal'));return}
     const editEmp=e.target.closest('[data-edit-employee]');if(editEmp){editEmployee(editEmp);return}
     const editUsr=e.target.closest('[data-edit-user]');if(editUsr){editUser(editUsr);return}
