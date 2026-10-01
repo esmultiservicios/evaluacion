@@ -503,3 +503,80 @@ body.game-play-body .games-footer,body.games-identify-body .games-footer{flex:0 
     flex:0 0 15px!important;display:block!important;
   }
 }
+
+/* v9.14 · móvil prioritario + visor de imágenes estable */
+html.game-viewer-open,body.game-viewer-open{overflow:hidden!important;overscroll-behavior:none}
+.challenge-visual img,.welcome-visual img{cursor:zoom-in}
+.challenge-zoom-btn,.welcome-zoom-btn{pointer-events:auto!important;z-index:30!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.hotspot-scene .challenge-visual{position:relative;z-index:2}
+.hotspot-layer{z-index:10}
+.hotspot-scene .challenge-zoom-btn{z-index:40!important}
+.play-mobile-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.play-home-link,.play-exit-link{display:none}
+
+.game-image-viewer{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important}
+.game-image-viewer-card{height:min(96dvh,980px)!important;max-height:96dvh}
+.game-image-viewer-stage{-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+.game-image-viewer-canvas>img{cursor:zoom-in;user-select:none;-webkit-user-drag:none}
+
+@media(max-width:760px){
+  .games-shell.is-game-play{width:100%!important;margin:0 auto!important;padding:8px 8px 18px}
+  .games-shell.is-game-play .play-shell{max-width:none;width:100%}
+  .games-shell.is-game-play .play-top{position:sticky;top:67px;z-index:40;margin:0 0 8px;padding:8px;border:1px solid #dce9ee;border-radius:14px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);box-shadow:0 8px 22px rgba(7,55,99,.08);gap:7px}
+  .games-shell.is-game-play .play-location{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .games-shell.is-game-play .play-mobile-nav{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:6px}
+  .games-shell.is-game-play .play-mobile-nav .back-link{display:flex!important;align-items:center;justify-content:center;min-height:34px;padding:0 7px;border:1px solid #d4e5ea;border-radius:10px;background:#f7fbfc;color:#194963;font-size:9.5px;font-weight:900;white-space:nowrap}
+  .games-shell.is-game-play .play-mobile-nav .play-home-link,.games-shell.is-game-play .play-mobile-nav .play-exit-link{display:flex!important}
+  .games-shell.is-game-play .play-portal-label{justify-self:start}
+  .games-shell.is-game-play .play-location>strong{justify-self:end;max-width:180px!important;font-size:9.5px}
+  .games-shell.is-game-play .play-player{display:none!important}
+  .games-shell.is-game-play .play-progress-copy{grid-column:1/-1;width:100%;justify-content:space-between;gap:7px;font-size:10px}
+  .games-shell.is-game-play .play-progress-copy span{display:inline!important}
+  .games-shell.is-game-play .progress-track{margin:0 4px 8px;height:6px}
+  .games-shell.is-game-play .play-stage{min-height:0!important;padding:15px 11px 20px!important;border-radius:18px!important}
+  .game-welcome{width:100%}
+  .welcome-visual{width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:16/9;margin-bottom:14px!important;border-radius:16px!important}
+  .welcome-visual img{object-fit:contain!important;background:#fff}
+  .game-welcome h1{font-size:clamp(25px,8vw,34px)!important;line-height:1.06}
+  .game-welcome>p{font-size:12px;line-height:1.5}
+  .challenge{max-width:none;width:100%}
+  .challenge-head{gap:8px;margin-bottom:14px;align-items:flex-start}
+  .challenge-head>span:last-child{text-align:right;font-size:10px;line-height:1.3}
+  .challenge h2{font-size:clamp(21px,7vw,28px)!important;line-height:1.18;margin-bottom:16px!important}
+  .challenge-layout{display:grid!important;grid-template-columns:1fr!important;gap:14px!important}
+  .challenge-visual{width:100%!important;border-radius:16px!important;overflow:hidden!important}
+  .challenge-visual img{width:100%!important;height:auto!important;max-height:56dvh!important;object-fit:contain!important;background:#fff}
+  .challenge-zoom-btn,.welcome-zoom-btn{right:8px!important;bottom:8px!important;min-height:38px!important;padding:0 12px!important;font-size:10.5px!important;border-radius:10px!important}
+  .hotspot-scene{width:100%!important;margin:0 auto 12px!important;transform:none!important;overflow:visible!important}
+  .hotspot-scene .challenge-visual{overflow:hidden!important}
+  .options{gap:8px}.option{padding:12px 11px;border-radius:13px;font-size:12.5px;line-height:1.35}.option span{width:30px;height:30px;flex:0 0 30px}
+  .neutral-next,.wizard-footer{position:relative;z-index:2}
+  .next-btn{width:100%;min-height:46px;padding:0 14px}
+  .game-quick-guide,.inspection-guide,.interaction-callout{margin-bottom:10px}
+  .game-result-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .game-summary-item{padding:12px!important}
+
+  .game-image-viewer{inset:0!important;width:100vw!important;height:100dvh!important;padding:max(6px,env(safe-area-inset-top)) 6px max(6px,env(safe-area-inset-bottom))!important}
+  .game-image-viewer-card{width:100%!important;height:100%!important;max-height:100%!important;grid-template-rows:auto minmax(0,1fr) auto!important;gap:6px!important}
+  .game-image-viewer-bar{padding:0 1px;align-items:center!important}
+  .game-image-viewer-bar>div:first-child{max-width:44%;overflow:hidden}
+  .game-image-viewer-bar strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10.5px!important}
+  .game-image-viewer-actions{margin-left:auto;gap:4px!important}
+  .game-image-viewer-actions button{min-width:36px!important;height:36px!important;border-radius:9px!important;touch-action:manipulation}
+  .game-image-viewer-actions .game-image-viewer-close{min-width:66px!important;font-size:9.5px!important}
+  .game-image-viewer-stage{width:100%;padding:6px!important;border-radius:12px!important;display:block!important}
+  .game-image-viewer-canvas{width:calc(100% * var(--viewer-scale))!important;min-width:calc(100% * var(--viewer-scale))!important;max-width:none!important;margin:0 auto!important}
+  .game-image-viewer-canvas>img{width:100%!important;border-radius:10px!important}
+  .game-image-viewer-legend{max-height:21dvh;overflow:auto;padding:7px 8px!important}
+}
+
+@media(max-width:430px){
+  .games-nav{gap:6px!important}.games-brand>span:last-child{display:none}.games-brand{flex:0 0 auto}.nav-actions{gap:3px!important}
+  .site-switch{gap:2px!important}.site-switch-label{display:none!important}.site-link{min-height:38px!important;padding:0 9px!important;font-size:9px!important}
+  .games-shell.is-game-play .play-top{top:61px}
+  .games-shell.is-game-play .play-location>strong{display:block!important;max-width:130px!important}
+  .game-image-viewer-bar>div:first-child{display:none!important}
+  .game-image-viewer-actions{width:100%;justify-content:space-between}
+  .game-image-viewer-actions [data-viewer-reset]{display:inline-flex!important;align-items:center;justify-content:center}
+  .game-image-viewer-actions .game-image-viewer-close{margin-left:auto}
+}

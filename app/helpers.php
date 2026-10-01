@@ -138,6 +138,15 @@ function ensure_runtime_schema(): void {
           set_setting('legacy_speed_timer_cleanup_v911','1');
         }
 
+        // v9.14: restaura una sola vez el tiempo base del Reto rápido a 10 s.
+        // Después el administrador puede cambiarlo libremente (20, 30, etc.) sin que el sistema lo sobrescriba.
+        if(setting('speed_default_timer_v914','0')!=='1'){
+          try{
+            db()->exec("UPDATE games SET time_limit_seconds=10 WHERE slug='reto-rapido' AND COALESCE(time_limit_seconds,0)=0");
+          }catch(Throwable){}
+          set_setting('speed_default_timer_v914','1');
+        }
+
         // v8.7: lenguaje más intuitivo en preguntas base ya instaladas.
         if(setting('question_content_schema','0')!=='2'){
           try{
