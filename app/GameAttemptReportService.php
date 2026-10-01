@@ -7,22 +7,29 @@ final class GameAttemptReportService
     {
         $sql="SELECT a.id,a.badge_snapshot AS badge,a.employee_name_snapshot AS name,
                      emp.department,g.title AS game,g.category,g.difficulty,
-                     a.correct_answers,a.total_items,a.accuracy_score,a.speed_score,a.score,a.response_seconds,a.completed_at
+                     a.correct_answers,a.total_items,a.accuracy_score,a.speed_score,a.score,a.response_seconds,a.answers_json,a.completed_at
               FROM game_attempts a
               JOIN games g ON g.id=a.game_id
               LEFT JOIN employees emp ON emp.id=a.employee_id
               WHERE a.completed_at IS NOT NULL
               ORDER BY a.completed_at DESC,a.id DESC";
-        return db()->query($sql)->fetchAll();
+        $rows=db()->query($sql)->fetchAll();
+        foreach($rows as &$row){
+            $decoded=json_decode((string)($row['answers_json']??''),true);
+            if(is_array($decoded)&&$decoded){$row['correct_answers']=count(array_filter($decoded,static fn($answer)=>is_array($answer)&&!empty($answer['correct'])));$row['total_items']=count($decoded);}
+            unset($row['answers_json']);
+        }
+        unset($row);
+        return $rows;
     }
 
     public function outputXlsx(): never
     {
         if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['Gafete','Nombre','Departamento','Juego','Categoría','Dificultad','Correctas','Retos','Exactitud','Rapidez','Puntuación final','Tiempo (s)','Fecha']];
+        $all=[['Gafete','Nombre','Departamento','Juego','Categoría','Dificultad','Retos correctos','Retos','Exactitud','Rapidez','Puntuación final','Tiempo (s)','Fecha']];
         foreach($rows as $r){
-            $all[]=[(string)$r['badge'],(string)$r['name'],(string)($r['department']??''),(string)$r['game'],(string)$r['category'],(string)$r['difficulty'],(string)$r['correct_answers'],(string)$r['total_items'],number_format((float)($r['accuracy_score']??$r['score']),2,'.',''),number_format((float)($r['speed_score']??0),2,'.',''),number_format((float)$r['score'],2,'.',''),number_format((float)($r['response_seconds']??0),1,'.',''),(string)$r['completed_at']];
+            $all[]=[(string)$r['badge'],(string)$r['name'],(string)($r['department']??''),(string)$r['game'],(string)$r['category'],(string)$r['difficulty'],(string)$r['correct_answers'],(string)$r['total_items'],number_format((float)($r['accuracy_score']??$r['score']),1,'.',''),number_format((float)($r['speed_score']??0),1,'.',''),number_format((float)$r['score'],1,'.',''),number_format((float)($r['response_seconds']??0),1,'.',''),(string)$r['completed_at']];
         }
         $tmp=tempnam(sys_get_temp_dir(),'gameattempts_');$zip=new ZipArchive();$zip->open($tmp,ZipArchive::CREATE|ZipArchive::OVERWRITE);
         $sheet='';foreach($all as $ri=>$row){$cells='';foreach($row as $ci=>$val){$ref=$this->col($ci+1).($ri+1);$style=$ri===0?' s="1"':'';$cells.='<c r="'.$ref.'" t="inlineStr"'.$style.'><is><t>'.htmlspecialchars((string)$val,ENT_XML1|ENT_QUOTES,'UTF-8').'</t></is></c>';}$sheet.='<row r="'.($ri+1).'">'.$cells.'</row>';}
@@ -38,7 +45,7 @@ final class GameAttemptReportService
 
     public function outputPdf(): never
     {
-        $rows=$this->rows();$lines=[];$lines[]=setting('company_name','Tu empresa').' - '.setting('app_name','Evaluacion Corporativa');$lines[]='Reporte de participacion en juegos · '.date('d/m/Y H:i');$lines[]='';$lines[]=sprintf('%-11s %-22s %-22s %-9s %-7s %-16s','GAFETE','NOMBRE','JUEGO','ACIERTOS','NOTA','FECHA');$lines[]=str_repeat('-',92);
+        $rows=$this->rows();$lines=[];$lines[]=setting('company_name','Tu empresa').' - '.setting('app_name','Evaluacion Corporativa');$lines[]='Reporte de participacion en juegos · '.date('d/m/Y H:i');$lines[]='';$lines[]=sprintf('%-11s %-22s %-22s %-9s %-7s %-16s','GAFETE','NOMBRE','JUEGO','RETOS OK','NOTA','FECHA');$lines[]=str_repeat('-',92);
         foreach($rows as $r){$lines[]=sprintf('%-11s %-22s %-22s %-9s %-7s %-16s',substr($this->ascii((string)$r['badge']),0,11),substr($this->ascii((string)$r['name']),0,22),substr($this->ascii((string)$r['game']),0,22),$r['correct_answers'].'/'.$r['total_items'],number_format((float)$r['score'],1).'%',date('d/m/Y H:i',strtotime((string)$r['completed_at'])));}if(!$rows)$lines[]='Sin partidas completadas.';
         $pdf=$this->simplePdf($lines);header('Content-Type: application/pdf');header('Content-Disposition: attachment; filename="participacion-juegos-'.date('Ymd-His').'.pdf"');header('Content-Length: '.strlen($pdf));echo $pdf;exit;
     }
@@ -46,7 +53,7 @@ final class GameAttemptReportService
     private function outputExcelFallback(): never
     {
         $rows=$this->rows();header('Content-Type: application/vnd.ms-excel; charset=UTF-8');header('Content-Disposition: attachment; filename="participacion-juegos-'.date('Ymd-His').'.xls"');echo "\xEF\xBB\xBF";
-        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left}</style></head><body><h2>Participación en juegos</h2><table><thead><tr><th>Gafete</th><th>Nombre</th><th>Departamento</th><th>Juego</th><th>Categoría</th><th>Dificultad</th><th>Correctas</th><th>Retos</th><th>Puntuación</th><th>Fecha</th></tr></thead><tbody>';
+        echo '<!doctype html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}th{background:#0B315B;color:#fff}th,td{border:1px solid #D9E4EA;padding:8px;text-align:left}</style></head><body><h2>Participación en juegos</h2><table><thead><tr><th>Gafete</th><th>Nombre</th><th>Departamento</th><th>Juego</th><th>Categoría</th><th>Dificultad</th><th>Retos correctos</th><th>Retos</th><th>Puntuación</th><th>Fecha</th></tr></thead><tbody>';
         foreach($rows as $r){$vals=[$r['badge'],$r['name'],$r['department']??'',$r['game'],$r['category'],$r['difficulty'],$r['correct_answers'],$r['total_items'],number_format((float)$r['score'],1).'%',(string)$r['completed_at']];echo '<tr>';foreach($vals as $v)echo '<td>'.htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8').'</td>';echo '</tr>';}if(!$rows)echo '<tr><td colspan="10">Sin partidas completadas.</td></tr>';echo '</tbody></table></body></html>';exit;
     }
     private function ascii(string $s): string{$x=iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$s);return $x===false?$s:$x;}

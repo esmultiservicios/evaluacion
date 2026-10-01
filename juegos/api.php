@@ -31,18 +31,34 @@ try{
             $pdo->rollBack();
             json_out(['ok'=>false,'already_completed'=>true,'message'=>'Este juego ya fue completado. Puedes abrirlo desde Mis juegos para revisar tu resultado, pero no volver a enviarlo.'],409);
         }
-        $accuracy=round(min(100,$correct/$total*100),2);$responseSeconds=max(0,(float)($_POST['response_seconds']??0));$timeLimit=max(0,(int)($gameRow['time_limit_seconds']??0));$speedMetric=$timeLimit>0?round(max(0,min(100,(1-($responseSeconds/$timeLimit))*100)),2):0;$speedEnabled=setting('speed_scoring_enabled','0')==='1';$bonusWeight=max(0,min(40,(float)setting('speed_bonus_percent','20')))/100;$speedRatio=$speedMetric/100;$score=$speedEnabled&&$timeLimit>0?round(min(100,(($correct*(1+$bonusWeight*$speedRatio))/($total*(1+$bonusWeight)))*100),2):$accuracy;
-        $raw=(string)($_POST['answers_json']??'');$answersJson=null;
+        $raw=(string)($_POST['answers_json']??'');$answersJson=null;$decoded=[];
         if($raw!==''){
             if(strlen($raw)>120000)throw new RuntimeException('El detalle de la partida es demasiado grande.');
             $decoded=json_decode($raw,true);
             if(!is_array($decoded))throw new RuntimeException('El detalle de la partida no es válido.');
             $answersJson=json_encode($decoded,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
         }
+        // Los aciertos son retos 100% correctos (siempre enteros). La exactitud sí admite crédito parcial.
+        $fullCorrect=0;$earnedEquivalent=0.0;
+        if($decoded){
+            $total=max(1,count($decoded));
+            foreach($decoded as $answer){
+                if(!is_array($answer))continue;
+                $isCorrect=!empty($answer['correct']);
+                if($isCorrect){$fullCorrect++;$earnedEquivalent+=1.0;continue;}
+                if(isset($answer['partial_score'])&&is_numeric($answer['partial_score'])){
+                    $earnedEquivalent+=max(0.0,min(100.0,(float)$answer['partial_score']))/100;
+                }
+            }
+        }else{
+            $earnedEquivalent=max(0.0,min((float)$total,$correct));
+            $fullCorrect=(int)floor($earnedEquivalent+0.00001);
+        }
+        $accuracy=round(min(100,($earnedEquivalent/$total)*100),2);$responseSeconds=max(0,(float)($_POST['response_seconds']??0));$timeLimit=max(0,(int)($gameRow['time_limit_seconds']??0));$speedMetric=$timeLimit>0?round(max(0,min(100,(1-($responseSeconds/$timeLimit))*100)),2):0;$speedEnabled=setting('speed_scoring_enabled','0')==='1';$bonusWeight=max(0,min(40,(float)setting('speed_bonus_percent','20')))/100;$speedRatio=$speedMetric/100;$score=$speedEnabled&&$timeLimit>0?round(min(100,(($earnedEquivalent*(1+$bonusWeight*$speedRatio))/($total*(1+$bonusWeight)))*100),2):$accuracy;
         $st=$pdo->prepare('INSERT INTO game_attempts(game_id,employee_id,badge_snapshot,employee_name_snapshot,accuracy_score,speed_score,score,correct_answers,total_items,response_seconds,answers_json,completed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,NOW())');
-        $correctStored=(int)floor($correct+0.00001);$st->execute([$gameId,$empId,$e['badge'],$e['name'],$accuracy,$speedMetric,$score,$correctStored,$total,$responseSeconds,$answersJson]);
+        $st->execute([$gameId,$empId,$e['badge'],$e['name'],$accuracy,$speedMetric,$score,$fullCorrect,$total,$responseSeconds,$answersJson]);
         $id=(int)$pdo->lastInsertId();$pdo->commit();
-        json_out(['ok'=>true,'score'=>$score,'accuracy_score'=>$accuracy,'speed_score'=>$speedMetric,'speed_enabled'=>$speedEnabled,'response_seconds'=>round($responseSeconds,1),'attempt_id'=>$id]);
+        json_out(['ok'=>true,'score'=>$score,'accuracy_score'=>$accuracy,'speed_score'=>$speedMetric,'speed_enabled'=>$speedEnabled,'response_seconds'=>round($responseSeconds,1),'correct_answers'=>$fullCorrect,'total_items'=>$total,'attempt_id'=>$id]);
     }
     throw new RuntimeException('Acción no válida.');
 }catch(Throwable $e){try{if(db()->inTransaction())db()->rollBack();}catch(Throwable){}json_out(['ok'=>false,'message'=>$e->getMessage()],422);}
