@@ -2,103 +2,81 @@
 require_once __DIR__.'/app/bootstrap.php';
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
+
 $appName = setting('app_name', 'Evaluación Corporativa');
 $company = setting('company_name', 'Tu empresa');
 $logo = setting('logo_path', '');
 $browserTitle = browser_title();
 $favicon = site_favicon();
 $questionCampaignImage = setting('question_campaign_image', 'assets/img/soar-cybersecurity-2026.jpg');
-?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    <meta name="theme-color" content="#073763">
-    <title><?=e($browserTitle)?></title>
-    <link rel="icon" href="<?=e($favicon)?>">
-    <link rel="shortcut icon" href="<?=e($favicon)?>">
-    <link rel="apple-touch-icon" href="<?=e($favicon)?>">
-    <link rel="stylesheet" href="assets/css/app.css?v=23">
-    <link rel="stylesheet" href="assets/css/notify.css?v=8">
-    <link rel="stylesheet" href="assets/vendor/sweetalert2/sweetalert2.local.css?v=8">
-    <script>window.APP={csrf:<?=json_encode(csrf_token())?>,questionsPerAttempt:<?=json_encode(max(1,(int)setting('questions_per_attempt','5')))?>,campaignImage:<?=json_encode($questionCampaignImage,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)?>};</script>
-</head>
-<body class="public-body evaluation-identify-mode">
-<header class="public-topbar">
-    <div class="public-nav">
-        <a class="public-brand" href="./">
-            <span class="heds-navbar-logo"><img src="assets/img/heds-logo-navbar.jpg" alt="HEDS · Honduras Electrical Distribution Systems"></span>
-            <span><strong><?=e($appName)?></strong><small><?=e($company)?></small></span>
-        </a>
-        <nav class="public-nav-actions">
-            <div class="site-switch" aria-label="Cambiar entre sitios">
-                <span class="site-switch-label">SITIOS</span>
-                <a class="site-link is-current" href="./" aria-current="page" title="Sitio de evaluación"><?=ui_icon('question')?><span>Preguntas</span></a>
-                <a class="site-link" href="juegos/" title="Ir al sitio de juegos"><?=ui_icon('external')?><span>Juegos</span></a>
-            </div>
-            <button class="screen-control" type="button" data-fullscreen-toggle aria-label="Pantalla completa" title="Pantalla completa"><?=ui_icon('fullscreen')?><span data-fullscreen-label>Pantalla completa</span></button>
-            <a href="admin/" class="admin-access" target="_blank" rel="noopener noreferrer" aria-label="Administración" title="Administración · abrir en otra pestaña"><?=ui_icon('settings')?><span>Administración</span><b>→</b></a>
-        </nav>
-    </div>
-</header>
+$questionsPerAttempt = max(1,(int)setting('questions_per_attempt','5'));
+$pdo = db();
 
+function eval_employee_payload(PDO $pdo, array $emp): array {
+    $groupName=trim((string)($emp['question_group']??''));
+    $groupDescription='';
+    if($groupName!==''){
+        try{$q=$pdo->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');$q->execute([$groupName]);$groupDescription=trim((string)($q->fetchColumn()?:''));}catch(Throwable $e){}
+    }
+    return ['id'=>(int)$emp['id'],'name'=>(string)$emp['name'],'badge'=>(string)$emp['badge'],'department'=>(string)($emp['department']??''),'question_group'=>$groupName,'group_description'=>$groupDescription];
+}
+function eval_existing_payload(PDO $pdo, array $emp): ?array {
+    $q=$pdo->prepare('SELECT * FROM evaluations WHERE employee_id=? LIMIT 1');$q->execute([(int)$emp['id']]);$existing=$q->fetch();if(!$existing)return null;
+    $questions=[];$eq=$pdo->prepare('SELECT * FROM evaluation_questions WHERE evaluation_id=? ORDER BY sort_order');$eq->execute([(int)$existing['id']]);
+    foreach($eq->fetchAll() as $row){
+        $op=$pdo->prepare('SELECT id,option_text_snapshot,is_correct_snapshot FROM evaluation_question_options WHERE evaluation_question_id=? ORDER BY sort_order,id');$op->execute([(int)$row['id']]);
+        $options=[];$correctTexts=[];foreach($op->fetchAll() as $o){$options[]=['id'=>(int)$o['id'],'text'=>(string)$o['option_text_snapshot']];if((int)$o['is_correct_snapshot']===1)$correctTexts[]=(string)$o['option_text_snapshot'];}
+        $selectedIds=json_decode((string)($row['selected_option_ids_json']??''),true);if(!is_array($selectedIds))$selectedIds=!empty($row['selected_option_id'])?[(int)$row['selected_option_id']]:[];
+        $selectedTexts=json_decode((string)($row['selected_option_texts_json']??''),true);if(!is_array($selectedTexts))$selectedTexts=!empty($row['selected_option_text'])?[(string)$row['selected_option_text']]:[];
+        $questions[]=['id'=>(int)$row['id'],'number'=>(int)$row['sort_order'],'text'=>(string)$row['question_text_snapshot'],'options'=>$options,'type'=>(string)($row['question_type_snapshot']??'single'),'required'=>max(1,(int)($row['required_selections_snapshot']??1)),'time_limit'=>max(0,(int)($row['time_limit_seconds_snapshot']??0)),'selected_ids'=>array_map('intval',$selectedIds),'selected_texts'=>array_values($selectedTexts),'correct_texts'=>$correctTexts,'correct'=>$row['is_correct']===null?null:(bool)$row['is_correct'],'response_seconds'=>(float)($row['response_seconds']??0)];
+    }
+    $payload=['success'=>true,'review'=>$existing['status']==='completed','resumed'=>$existing['status']!=='completed','token'=>(string)$existing['token'],'employee'=>eval_employee_payload($pdo,$emp),'questions'=>$questions,'speed_enabled'=>setting('speed_scoring_enabled','0')==='1'];
+    if($existing['status']==='completed'){$payload+=['score'=>(float)$existing['score'],'accuracy_score'=>(float)($existing['accuracy_score']??$existing['score']),'speed_score'=>(float)($existing['speed_score']??0),'response_seconds'=>(float)($existing['response_seconds']??0),'correct'=>(int)$existing['correct_answers'],'total'=>(int)$existing['total_questions'],'completed_at'=>$existing['completed_at']];}
+    else{foreach($payload['questions'] as &$item){unset($item['selected_ids'],$item['selected_texts'],$item['correct_texts'],$item['correct'],$item['response_seconds']);}unset($item);}
+    return $payload;
+}
+function eval_initials(string $name): string { $p=preg_split('/\s+/',trim($name))?:[]; $a=$p[0][0]??'U'; $b=count($p)>1?($p[count($p)-1][0]??''):($p[0][1]??''); return mb_strtoupper($a.$b); }
+function eval_first_name(string $name): string { $p=preg_split('/\s+/',trim($name))?:[]; return (string)($p[0]??$name); }
+function eval_progress_panel(int $assigned,int $answered): string {$pct=$assigned?round($answered/$assigned*100):0;$pending=max(0,$assigned-$answered);return '<div class="participant-progress-panel"><div class="participant-progress-metrics"><span><small>Asignadas</small><strong>'.$assigned.'</strong></span><span><small>Completadas</small><strong>'.$answered.'</strong></span><span><small>Pendientes</small><strong>'.$pending.'</strong></span><span><small>Progreso</small><strong>'.$pct.'%</strong></span></div><button type="button" class="change-participant" data-change-participant><span class="change-icon">↻</span><span>Cambiar<br>participante</span></button></div>';}
+function eval_confirm_html(array $emp,bool $resumed,bool $completed,int $assigned,string $campaign): string {
+    $answered=$completed?$assigned:0;$first=e(eval_first_name((string)$emp['name']));$title=e(trim((string)($emp['question_group']??''))?:'Evaluación general');$desc=e((string)($emp['group_description']??''));$campaign=e($campaign);ob_start();?>
+<div class="participant-welcome-row"><div class="participant-welcome-main"><span class="identity-avatar compact"><?=e(eval_initials((string)$emp['name']))?></span><div><span class="eyebrow participant-zone-label">TU ZONA DE PREGUNTAS</span><h2>¡Hola, <?=$first?>! 👋</h2><p><?=e($emp['name'])?> · Gafete <?=e($emp['badge'])?><?=!empty($emp['department'])?' · '.e($emp['department']):''?></p></div></div><?=eval_progress_panel($assigned,$answered)?></div>
+<section class="evaluation-ready-hero"><div class="evaluation-ready-icon"><?=$completed?'✓':'→'?></div><div class="evaluation-ready-copy"><div class="portal-context-line"><span class="portal-kind-pill">PREGUNTAS</span><span class="portal-context-kicker"><?=$completed?'RESULTADO DISPONIBLE':'CATEGORÍA ASIGNADA'?></span></div><h3><?=$title?></h3><strong class="evaluation-ready-subtitle"><?=$completed?'Participación completada':'Todo listo para comenzar, '.$first?></strong><?php if($desc!==''):?><p class="experience-description"><?=$desc?></p><?php endif;?><p><?=$completed?'Puedes revisar tu puntuación y el resumen de lo que respondiste. La participación queda bloqueada para evitar correcciones o un segundo envío.':'Tus respuestas se guardarán una sola vez. Durante la evaluación no mostraremos si una respuesta es correcta o incorrecta; verás el resumen al final.'?></p><div class="evaluation-ready-chips"><span>📝 <?=$assigned?> preguntas asignadas</span><span>🔒 1 participación por gafete</span><span>⏱️ Tiempo medible cuando esté configurado</span></div></div><div class="evaluation-ready-aside"><div class="evaluation-campaign-mark"><img src="<?=$campaign?>" alt="SOAR · Security Opportunity Action Recognition"><span>PROGRAMA SOAR · CIBERSEGURIDAD</span></div><div class="evaluation-ready-person"><span class="identity-avatar"><?=e(eval_initials((string)$emp['name']))?></span><span><strong><?=e($emp['name'])?></strong><small>Gafete <?=e($emp['badge'])?></small></span></div></div></section>
+<?php if($resumed):?><div class="resume-note">↻ Ya habías iniciado esta evaluación. Continuarás con las mismas preguntas.</div><?php endif;?>
+<div class="evaluation-start-guide"><div><b>1</b><span><strong>Selecciona lo solicitado</strong><small>En preguntas múltiples debes completar exactamente la cantidad indicada.</small></span></div><div><b>2</b><span><strong>Respuesta definitiva</strong><small>Al avanzar, esa respuesta queda bloqueada y no puede corregirse.</small></span></div><div><b>3</b><span><strong>Resumen al final</strong><small>Ahí verás qué estuvo bien, qué estuvo mal y tu puntuación.</small></span></div></div><div class="wizard-actions"><button type="button" class="btn btn-light" id="backToBadge">← Corregir gafete</button><button type="button" class="btn btn-primary no-top" id="startQuiz"><?=$completed?'Ver mi resultado':($resumed?'Continuar evaluación':'Comenzar evaluación')?> <span>→</span></button></div>
+<?php return ob_get_clean();
+}
+function eval_question_html(array $payload,int $idx): string { $questions=$payload['questions'];$q=$questions[$idx];$total=count($questions);$required=max(1,(int)($q['required']??1));$multi=($q['type']??'single')==='multiple';ob_start();?>
+<div class="quiz-wizard-head"><div class="quiz-head-main"><div class="quiz-heading-line"><span class="step-pill">Pregunta <?=$idx+1?> de <?=$total?></span><button type="button" class="question-back-button" data-question-home>← <span>Regresar</span></button></div><strong class="quiz-section-title"><?=$multi?'Selecciona exactamente '.$required.' opción'.($required===1?'':'es').'.':'Selecciona una respuesta. Al avanzar quedará bloqueada.'?></strong></div><div class="quiz-progress-copy"><span><strong>0</strong> respondidas</span><small><?=$total?> pendientes</small></div></div><div class="quiz-progress"><i style="width:0%"></i></div><div class="question-stage"><div class="question-num">Pregunta <?=$idx+1?> de <?=$total?></div><h3><?=e($q['text'])?></h3><?php if($multi):?><div class="selection-counter" data-selection-counter>0 de <?=$required?> seleccionadas</div><?php endif;?><div class="options"><?php foreach($q['options'] as $i=>$o):?><label class="option"><input type="<?=$multi?'checkbox':'radio'?>" name="wizard_answer" value="<?=(int)$o['id']?>"><span class="<?=$multi?'check-box':'radio'?>"></span><span><b class="option-letter"><?=chr(65+$i)?></b><?=e($o['text'])?></span><em class="selected-mark">✓</em></label><?php endforeach;?></div></div><div class="wizard-footer"><span class="answer-lock-note">🔒 Al continuar, esta respuesta no podrá cambiarse.</span><button type="button" class="btn btn-primary no-top" id="nextQuestion" disabled><?=$idx===$total-1?'Finalizar evaluación':'Guardar y continuar'?> <span><?=$idx===$total-1?'✓':'→'?></span></button></div>
+<?php return ob_get_clean(); }
+function eval_result_html(array $payload): string { $total=(int)($payload['total']??count($payload['questions']));$correct=(int)($payload['correct']??0);$score=(float)($payload['score']??0);$accuracy=(float)($payload['accuracy_score']??$score);$speed=(float)($payload['speed_score']??0);ob_start();?>
+<div class="question-session-toolbar result-toolbar"><button type="button" class="question-back-button" data-question-home>← <span>Regresar</span></button></div><div class="success-screen result-summary-screen"><div class="success-icon">✓</div><p class="eyebrow">MODO REVISIÓN · SOLO LECTURA</p><h2>Esta participación ya fue enviada</h2><div class="result-score-grid"><div class="score-ring"><strong><?=number_format($score,0)?></strong><span>/100</span></div><div class="result-metrics"><span><small>Aciertos</small><strong><?=$correct?> / <?=$total?></strong></span><span><small>Exactitud</small><strong><?=number_format($accuracy,1)?>%</strong></span><span><small>Tiempo total</small><strong><?=number_format((float)($payload['response_seconds']??0),1)?> s</strong></span><?php if(!empty($payload['speed_enabled'])):?><span><small>Rapidez</small><strong><?=number_format($speed,1)?>%</strong></span><?php endif;?></div></div><div class="review-lock-banner">🔒 Las respuestas ya están guardadas. Puedes revisar el resumen, pero no repetir ni corregir la evaluación.</div><div class="review-actions"><button type="button" class="btn btn-light" data-change-participant>↻ Cambiar participante</button><a class="btn btn-primary no-top" href="juegos/">Ir a Juegos →</a></div></div>
+<?php return ob_get_clean(); }
+
+$player=null;$employeePayload=null;$existingPayload=null;
+$playerId=(int)($_SESSION['participant_employee_id']??$_SESSION['game_employee_id']??0);
+if($playerId>0){$q=$pdo->prepare("SELECT id,badge,name,department,question_group FROM employees WHERE id=? AND status='active' LIMIT 1");$q->execute([$playerId]);$player=$q->fetch()?:null;if($player){$_SESSION['participant_employee_id']=(int)$player['id'];$_SESSION['participant_employee_badge']=(string)$player['badge'];$_SESSION['game_employee_id']=(int)$player['id'];$_SESSION['game_employee_badge']=(string)$player['badge'];$employeePayload=eval_employee_payload($pdo,$player);$existingPayload=eval_existing_payload($pdo,$player);}else{unset($_SESSION['participant_employee_id'],$_SESSION['participant_employee_badge'],$_SESSION['game_employee_id'],$_SESSION['game_employee_badge']);}}
+$requested=(string)($_GET['view']??'');$stage='identify';$currentIndex=0;
+if($employeePayload){$stage=in_array($requested,['confirm','quiz','result'],true)?$requested:'confirm';if(!$existingPayload&&in_array($stage,['quiz','result'],true))$stage='confirm';if($existingPayload&&$existingPayload['review']){$stage=$stage==='confirm'?'confirm':'result';}elseif($stage==='result'){$stage='quiz';}$currentIndex=max(0,min((int)($_GET['q']??1)-1,max(0,count($existingPayload['questions']??[])-1)));}
+$sessionBadge=$employeePayload['badge']??'';$participantQuery=$sessionBadge!==''?'?participant='.rawurlencode($sessionBadge):'';
+$preload=['stage'=>$stage,'employee'=>$employeePayload,'evaluation'=>$existingPayload,'current'=>$currentIndex];
+?><!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#073763"><title><?=e($browserTitle)?> · Preguntas</title><link rel="icon" href="<?=e($favicon)?>"><link rel="shortcut icon" href="<?=e($favicon)?>"><link rel="apple-touch-icon" href="<?=e($favicon)?>"><style id="evaluation-critical-css">
+/* CRITICAL: evita FOUC/flash antes de que cargue app.css.
+   La vista incorrecta JAMÁS debe pintarse ni por un frame. */
+.hidden{display:none!important}
+html,body{margin:0}
+body.evaluation-page{background:#f4f8fa}
+body.evaluation-page .evaluation-identify-shell.hidden,
+body.evaluation-page .evaluation-card.hidden,
+body.evaluation-page #identityConfirmStep.hidden,
+body.evaluation-page #quizStep.hidden,
+body.evaluation-page #employeePreview.hidden,
+body.evaluation-page #evaluationBrand.hidden{display:none!important}
+</style><link rel="stylesheet" href="assets/css/app.css?v=35"><link rel="stylesheet" href="assets/css/notify.css?v=8"><link rel="stylesheet" href="assets/vendor/sweetalert2/sweetalert2.local.css?v=8"><script>window.APP={csrf:<?=json_encode(csrf_token())?>,questionsPerAttempt:<?=json_encode($questionsPerAttempt)?>,campaignImage:<?=json_encode(ltrim($questionCampaignImage,'/'),JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)?>,sessionBadge:<?=json_encode($sessionBadge,JSON_UNESCAPED_UNICODE)?>,apiBase:'api/',questionsPath:'./',gamesPath:'juegos/',preload:<?=json_encode($preload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>};</script></head>
+<body class="public-body evaluation-page <?=$stage==='identify'?'evaluation-identify-mode':'evaluation-active'?>"><header class="public-topbar"><div class="public-nav"><a class="public-brand" href="./"><span class="heds-navbar-logo"><img src="assets/img/heds-logo-navbar.jpg" alt="HEDS · Honduras Electrical Distribution Systems"></span><span><strong><?=e($appName)?></strong><small>Zona interactiva · <?=e($company)?></small></span></a><nav class="public-nav-actions"><div class="site-switch" aria-label="Cambiar entre sitios"><span class="site-switch-label">SITIOS</span><a class="site-link is-current" href="./<?=e($participantQuery)?>" aria-current="page" title="Sitio de evaluación"><?=ui_icon('question')?><span>Preguntas</span></a><a class="site-link" href="juegos/<?=e($participantQuery)?>" title="Ir al sitio de juegos"><?=ui_icon('external')?><span>Juegos</span></a></div><button type="button" class="sound-toggle" data-public-sound-toggle aria-label="Activar o desactivar sonido">🔊 <span>Sonido</span></button><button class="screen-control" type="button" data-fullscreen-toggle aria-label="Pantalla completa" title="Pantalla completa"><?=ui_icon('fullscreen')?><span data-fullscreen-label>Pantalla completa</span></button><a href="admin/" class="admin-access" target="_blank" rel="noopener noreferrer" aria-label="Administración" title="Administración · abrir en otra pestaña"><?=ui_icon('settings')?><span>Administración</span><b>→</b></a></nav></div></header>
 <main class="public-shell">
-    <section class="evaluation-identify-shell motion-card" id="evaluationGate">
-        <div class="evaluation-identify-visual">
-            <div class="soar-identify-banner" aria-label="SOAR · Security Opportunity Action Recognition">
-                <img src="<?=e($questionCampaignImage)?>" alt="SOAR · Security Opportunity Action Recognition">
-            </div>
-            <p class="hero-kicker">EXPERIENCIA PERSONALIZADA</p>
-            <h1>Antes de evaluar,<br>¿quién eres?</h1>
-            <p>Ingresa tu gafete. Usaremos tu nombre para saludarte, asignarte las preguntas según la configuración y registrar tu participación.</p>
-            <div class="evaluation-identify-points">
-                <span>✓ Preguntas asignadas para ti</span>
-                <span>✓ Una participación identificada por gafete</span>
-                <span>✓ Experiencia personalizada</span>
-            </div>
-        </div>
-
-        <div class="evaluation-identify-card">
-            <div id="identifyStep">
-                <span class="eyebrow">IDENTIFICACIÓN</span>
-                <h2>Ingresa tu gafete</h2>
-                <p class="evaluation-identify-copy">Confirmaremos tu nombre antes de mostrar tu evaluación.</p>
-                <div class="field evaluation-badge-field">
-                    <label for="badge">Número de gafete</label>
-                    <div class="evaluation-badge-row">
-                        <div class="input-icon"><?=ui_icon('users')?> <input id="badge" name="badge" autocomplete="off" inputmode="numeric" pattern="[0-9]+" maxlength="40" placeholder="Ej. 4500329" autofocus></div>
-                        <button class="btn btn-primary evaluation-continue" id="continueBtn" disabled><span>Continuar</span><span>→</span></button>
-                    </div>
-                </div>
-                <div id="employeePreview" class="employee-preview hidden"></div>
-                <div class="public-note">Tus respuestas quedarán registradas una sola vez y se asociarán a tu gafete.</div>
-            </div>
-        </div>
-    </section>
-
-    <section class="brand-card motion-card hidden" id="evaluationBrand">
-        <div class="brand-logo">
-            <?php if($logo):?><img src="<?=e($logo)?>" alt="<?=e($company)?>"><?php else:?><div class="logo-placeholder"><span>EC</span></div><?php endif;?>
-        </div>
-        <div>
-            <p class="eyebrow">DINÁMICA CORPORATIVA</p>
-            <h1><?=e($appName)?></h1>
-            <p><?=e(setting('welcome_text','Ingresa tu número de gafete para comenzar. La evaluación solo puede completarse una vez.'))?></p>
-        </div>
-        <span class="single-entry-badge">1 participación por empleado</span>
-    </section>
-
-    <section class="evaluation-card motion-card hidden" id="evaluacion">
-        <div id="identityConfirmStep" class="hidden"></div>
-        <div id="quizStep" class="hidden"></div>
-    </section>
-
-    <footer><?=e($company)?> · <?=date('Y')?> · <?=e($appName)?></footer>
-</main>
-<script src="assets/vendor/sweetalert2/sweetalert2.local.js?v=7"></script>
-<script src="assets/js/notify.js?v=7"></script>
-<script src="assets/js/fullscreen.js?v=1"></script>
-<script src="assets/js/app.js?v=17"></script>
-</body>
-</html>
+<section class="evaluation-identify-shell <?=$stage==='identify'?'':'hidden'?>" id="evaluationGate"><div class="evaluation-identify-visual"><div class="soar-identify-banner" aria-label="SOAR · Security Opportunity Action Recognition"><img src="<?=e($questionCampaignImage)?>" alt="SOAR · Security Opportunity Action Recognition"></div><p class="hero-kicker">EXPERIENCIA PERSONALIZADA</p><h1>Antes de evaluar,<br>¿quién eres?</h1><p>Ingresa tu gafete. Usaremos tu nombre para saludarte, asignarte las preguntas según la configuración y registrar tu participación.</p><div class="evaluation-identify-points"><span>✓ Preguntas asignadas para ti</span><span>✓ Una participación identificada por gafete</span><span>✓ Experiencia personalizada</span></div></div><div class="evaluation-identify-card"><div id="identifyStep"><span class="eyebrow">IDENTIFICACIÓN</span><h2>Ingresa tu gafete</h2><p class="evaluation-identify-copy">Confirmaremos tu nombre antes de mostrar tu evaluación.</p><div class="field evaluation-badge-field"><label for="badge">Número de gafete</label><div class="evaluation-badge-row"><div class="input-icon"><?=ui_icon('users')?> <input id="badge" name="badge" autocomplete="off" inputmode="numeric" pattern="[0-9]+" maxlength="40" placeholder="Ej. 4500329" <?=$stage==='identify'?'autofocus':''?>></div><button class="btn btn-primary evaluation-continue" id="continueBtn" disabled><span>Continuar</span><span>→</span></button></div></div><div id="employeePreview" class="employee-preview hidden"></div><div class="public-note">Tus respuestas quedarán registradas una sola vez y se asociarán a tu gafete.</div></div></div></section>
+<section class="brand-card hidden" id="evaluationBrand"><div class="brand-logo"><?php if($logo):?><img src="<?=e($logo)?>" alt="<?=e($company)?>"><?php else:?><div class="logo-placeholder"><span>EC</span></div><?php endif;?></div><div><p class="eyebrow">DINÁMICA CORPORATIVA</p><h1><?=e($appName)?></h1><p><?=e(setting('welcome_text','Ingresa tu número de gafete para comenzar. La evaluación solo puede completarse una vez.'))?></p></div><span class="single-entry-badge">1 participación por empleado</span></section>
+<section class="evaluation-card <?=$stage==='identify'?'hidden':''?>" id="evaluacion"><div id="identityConfirmStep" class="<?=$stage==='confirm'?'':'hidden'?>"><?php if($stage==='confirm'&&$employeePayload)echo eval_confirm_html($employeePayload,(bool)($existingPayload&&!$existingPayload['review']),(bool)($existingPayload&&$existingPayload['review']),$questionsPerAttempt,ltrim($questionCampaignImage,'/'));?></div><div id="quizStep" class="<?=in_array($stage,['quiz','result'],true)?'':'hidden'?>"><?php if($stage==='quiz'&&$existingPayload)echo eval_question_html($existingPayload,$currentIndex);elseif($stage==='result'&&$existingPayload)echo eval_result_html($existingPayload);?></div></section>
+<footer><?=e($company)?> · <?=date('Y')?> · <?=e($appName)?></footer></main>
+<script src="assets/vendor/sweetalert2/sweetalert2.local.js?v=7"></script><script src="assets/js/notify.js?v=7"></script><script src="assets/js/fullscreen.js?v=1"></script><script src="assets/js/public-sound.js?v=1"></script><script src="assets/js/app.js?v=31"></script></body></html>

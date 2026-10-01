@@ -60,6 +60,75 @@
   async function submitQuiz(){clearInterval(questionTimer);const questions=evaluation.questions,next=$('#nextQuestion');if(next){next.disabled=true;next.innerHTML='<span class="spinner"></span><span>Guardando...</span>'}const fd=new FormData();fd.append('csrf',APP.csrf);fd.append('token',evaluation.token);questions.forEach(q=>{const arr=selectionFor(q);arr.forEach(v=>fd.append(`answers[${q.id}][]`,v));fd.append(`times[${q.id}]`,String(Number(times[q.id]||0).toFixed(3)))});try{const r=await fetch('api/submit.php',{method:'POST',body:fd,headers:{'X-Requested-With':'fetch'},cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.message||'No se pudo guardar');renderResult(j,false)}catch(e){showNotify('error',e.message);renderQuestion()}}
 
 
+  function bindConfirmationActions(emp,resumed,completed){
+    bindChangeParticipant();
+    $('#backToBadge')?.addEventListener('click',changeParticipant);
+    const startQuiz=async()=>{
+      const start=$('#startQuiz');if(!start||start.disabled)return;
+      start.disabled=true;start.innerHTML='<span class="spinner"></span><span>Preparando...</span>';
+      try{
+        const fd=new FormData();fd.append('csrf',APP.csrf);fd.append('badge',emp.badge);
+        const r=await fetch('api/start.php',{method:'POST',body:fd,headers:{'X-Requested-With':'fetch'},cache:'no-store'});
+        const j=await r.json();if(!r.ok)throw new Error(j.message||'No se pudo iniciar');
+        evaluation=j;current=0;if(j.review)renderReview();else renderWizard();
+      }catch(err){showNotify('error',err.message);start.disabled=false;start.innerHTML=`${completed?'Ver mi resultado':(resumed?'Continuar evaluación':'Comenzar evaluación')} <span>→</span>`}
+    };
+    $('#startQuiz')?.addEventListener('click',startQuiz);
+    if(confirmStep)confirmStep.onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName!=='BUTTON'){e.preventDefault();startQuiz()}};
+  }
+
+  function hydrateServerQuestion(){
+    if(!evaluation?.questions?.length)return;
+    const serverCurrent=current;
+    loadWizardState();
+    current=Math.max(0,Math.min(serverCurrent,evaluation.questions.length-1));
+    saveUiState('quiz',evaluation?.employee?.badge);
+    setEvaluationMode('active');
+    const q=evaluation.questions[current],required=Math.max(1,Number(q.required||1)),multi=q.type==='multiple';
+    const selected=selectionFor(q).map(String);
+    $$('input[name="wizard_answer"]').forEach(input=>{
+      input.checked=selected.includes(String(input.value));
+      input.closest('.option')?.classList.toggle('is-selected',input.checked);
+      input.addEventListener('change',()=>{
+        let arr=selectionFor(q);
+        if(multi){
+          const id=String(input.value);
+          if(input.checked){if(arr.length>=required){input.checked=false;showNotify('info',`Solo puedes seleccionar ${required} opción${required===1?'':'es'} en esta pregunta.`);return}arr=[...arr,id]}
+          else arr=arr.filter(x=>String(x)!==id);
+          answers[q.id]=arr;
+        }else answers[q.id]=[String(input.value)];
+        saveWizardState();
+        const count=selectionFor(q).length;
+        $$('.option').forEach(el=>el.classList.toggle('is-selected',!!el.querySelector('input:checked')));
+        const counter=$('[data-selection-counter]');if(counter)counter.textContent=`${count} de ${required} seleccionadas`;
+        const next=$('#nextQuestion');if(next)next.disabled=count!==required;
+      });
+    });
+    const count=selectionFor(q).length;
+    const counter=$('[data-selection-counter]');if(counter)counter.textContent=`${count} de ${required} seleccionadas`;
+    const next=$('#nextQuestion');if(next){
+      next.disabled=count!==required;
+      next.addEventListener('click',async()=>{
+        if(!isReady(q)){showNotify('warning',`Selecciona ${required} opción${required===1?'':'es'} para continuar.`);return}
+        stopQuestionTimer(q);committed[q.id]=true;
+        if(current<evaluation.questions.length-1){advanceQuestion();return}
+        const result=await Swal.fire({icon:'question',title:'Enviar evaluación',text:'Tus respuestas ya quedaron definidas. El resumen de correctas e incorrectas aparecerá después de guardar.',showCancelButton:false,confirmButtonText:'Guardar y ver resumen',confirmButtonIcon:'check',allowOutsideClick:false});
+        if(result.isConfirmed)submitQuiz();
+      });
+    }
+    bindQuestionHome();
+    if(quiz)quiz.onkeydown=e=>{if(e.key==='Enter'&&isReady(q)){e.preventDefault();$('#nextQuestion')?.click()}};
+    startQuestionTimer(q);
+  }
+
+  function hydrateServerResult(){
+    saveUiState('result',evaluation?.employee?.badge);
+    setEvaluationMode('active');
+    bindQuestionHome(true);
+    bindChangeParticipant();
+  }
+
+
   async function restoreParticipantOnLoad(){
     const remembered=loadUiState();
     try{
@@ -111,20 +180,28 @@
     current=Math.max(0,Number(preload.current||0));
     resumeHint=!!(evaluation&&evaluation.resumed);
     completedHint=!!(evaluation&&evaluation.review);
+
+    // Igual que Juegos: PHP ya entregó la vista correcta. Aquí solo conectamos eventos;
+    // NO reconstruimos el HTML al cargar y por tanto no existe salto/fade entre pantallas.
     if(preload.stage==='identify'||!employee){
+      saveUiState('identify');
       setEvaluationMode('identify');
-      gate?.classList.remove('hidden');evaluationCard?.classList.add('hidden');identify?.classList.remove('hidden');
-      saveUiState('identify');syncEvaluationUrl('identify');revealEvaluation();
+      resetContinue();
     }else if(preload.stage==='confirm'){
-      renderIdentityConfirmation(employee,resumeHint,completedHint);
+      saveUiState('confirm',employee.badge);
+      setEvaluationMode('active');
+      bindConfirmationActions(employee,resumeHint,completedHint);
     }else if(preload.stage==='result'&&evaluation){
-      renderReview();
+      hydrateServerResult();
     }else if(preload.stage==='quiz'&&evaluation){
-      renderWizard();
+      hydrateServerQuestion();
     }else{
-      renderIdentityConfirmation(employee,resumeHint,completedHint);
+      saveUiState('confirm',employee?.badge||'');
+      setEvaluationMode('active');
+      bindConfirmationActions(employee,resumeHint,completedHint);
     }
   }else{
     restoreParticipantOnLoad();
   }
+
 })();

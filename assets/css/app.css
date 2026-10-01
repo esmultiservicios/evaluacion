@@ -494,3 +494,7 @@ html{font-size:16px}body.public-body{font-weight:550;-webkit-font-smoothing:auto
   .evaluation-badge-row .evaluation-continue{min-width:48px!important;padding:0 13px!important}
   body.public-body.evaluation-active .question-stage h3{font-size:18px!important}
 }
+
+/* v9.22 · evaluación sin flash: mismo principio de carga directa que Juegos */
+body.evaluation-page .motion-card,body.evaluation-page .question-stage,body.evaluation-page .employee-preview{animation:none!important;opacity:1!important;transform:none!important}
+body.evaluation-page .evaluation-card,body.evaluation-page .evaluation-identify-shell{animation:none!important;transition:none!important}
