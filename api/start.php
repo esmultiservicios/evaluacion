@@ -11,10 +11,14 @@ try{
     $q->execute([$badge]);
     $emp=$q->fetch();
     if(!$emp) throw new RuntimeException('Empleado no encontrado.');
-    $resolvedGroup=resolve_content_group($emp,'questions');
-    $questionGroup=$resolvedGroup['name'];
-    $questionGroupDescription=$resolvedGroup['description'];
-    $employeePayload=['name'=>$emp['name'],'badge'=>$emp['badge'],'department'=>$emp['department']??'','question_group'=>$questionGroup,'group_description'=>$questionGroupDescription,'group_source'=>$resolvedGroup['source']];
+    $questionGroup=trim((string)($emp['question_group']??''));
+    $questionGroupDescription='';
+    if($questionGroup!==''){
+        $gq=$pdo->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');
+        $gq->execute([$questionGroup]);
+        $questionGroupDescription=trim((string)($gq->fetchColumn()?:''));
+    }
+    $employeePayload=['name'=>$emp['name'],'badge'=>$emp['badge'],'department'=>$emp['department']??'','question_group'=>$questionGroup,'group_description'=>$questionGroupDescription];
 
     $q=$pdo->prepare('SELECT * FROM evaluations WHERE employee_id=? LIMIT 1 FOR UPDATE');
     $q->execute([$emp['id']]);

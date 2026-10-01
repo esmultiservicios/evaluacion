@@ -24,26 +24,6 @@ function audit(string $action,string $entityType='',?int $entityId=null,string $
 function flash(string $type,string $message): void { $_SESSION['flash']=['type'=>$type,'message'=>$message]; }
 function pull_flash(): ?array { $f=$_SESSION['flash']??null;unset($_SESSION['flash']);return $f; }
 
-function resolve_content_group(array $employee,string $portal='questions'): array {
-    $portal=$portal==='games'?'games':'questions';
-    $visibilityColumn=$portal==='games'?'game_visible':'question_visible';
-    $primaryColumn=$portal==='games'?'game_group':'question_group';
-    $secondaryColumn=$portal==='games'?'question_group':'game_group';
-    $candidates=[];
-    foreach([$employee[$primaryColumn]??'', $employee[$secondaryColumn]??''] as $candidate){
-        $candidate=trim((string)$candidate);
-        if($candidate!==''&&!in_array($candidate,$candidates,true))$candidates[]=$candidate;
-    }
-    foreach($candidates as $candidate){
-        $st=db()->prepare("SELECT name,description,active,question_visible,game_visible FROM content_groups WHERE name=? AND active=1 AND {$visibilityColumn}=1 LIMIT 1");
-        $st->execute([$candidate]);
-        if($row=$st->fetch()) return ['name'=>(string)$row['name'],'description'=>(string)($row['description']??''),'source'=>'assigned'];
-    }
-    $st=db()->query("SELECT name,description FROM content_groups WHERE active=1 AND {$visibilityColumn}=1 ORDER BY updated_at DESC,id DESC LIMIT 1");
-    if($row=$st->fetch()) return ['name'=>(string)$row['name'],'description'=>(string)($row['description']??''),'source'=>'active'];
-    return ['name'=>'','description'=>'','source'=>'none'];
-}
-
 function ensure_runtime_schema(): void {
     static $done=false; if($done) return; $done=true;
     try{
@@ -126,9 +106,7 @@ function ensure_runtime_schema(): void {
         $ensureColumn('games','group_name',"VARCHAR(120) NULL AFTER category");
         $ensureColumn('employees','question_group',"VARCHAR(120) NULL AFTER department");
         $ensureColumn('employees','game_group',"VARCHAR(120) NULL AFTER question_group");
-        db()->exec("CREATE TABLE IF NOT EXISTS content_groups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL UNIQUE, description VARCHAR(500) NULL, active TINYINT(1) NOT NULL DEFAULT 1, question_visible TINYINT(1) NOT NULL DEFAULT 1, game_visible TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-        $ensureColumn('content_groups','question_visible',"TINYINT(1) NOT NULL DEFAULT 1 AFTER active");
-        $ensureColumn('content_groups','game_visible',"TINYINT(1) NOT NULL DEFAULT 1 AFTER question_visible");
+        db()->exec("CREATE TABLE IF NOT EXISTS content_groups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL UNIQUE, description VARCHAR(500) NULL, active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, INDEX(active,name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         db()->exec("CREATE TABLE IF NOT EXISTS user_preferences (user_id BIGINT UNSIGNED NOT NULL, pref_key VARCHAR(120) NOT NULL, pref_value VARCHAR(255) NULL, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY(user_id,pref_key), CONSTRAINT fk_up_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $gameCount=(int)db()->query("SELECT COUNT(*) FROM games")->fetchColumn();
         if($gameCount===0 && setting('game_seed_initialized','0')!=='1'){
@@ -136,7 +114,7 @@ function ensure_runtime_schema(): void {
           foreach($games as $i=>$g)$ins->execute([$g['title'],$g['slug'],$g['type'],'Ciberseguridad',$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$i+1]);set_setting('game_seed_initialized','1');
         }elseif($gameCount>0 && setting('game_seed_initialized','0')!=='1'){set_setting('game_seed_initialized','1');}
         // v8.2: mejora los 8 juegos base ya instalados sin tocar juegos personalizados.
-        if(setting('game_content_schema','1')!=='3'){
+        if(setting('game_content_schema','1')!=='4'){
           $findBase=db()->prepare('SELECT id FROM games WHERE slug=? LIMIT 1');
           $up=db()->prepare('UPDATE games SET game_type=?,difficulty=?,intro=?,content_json=? WHERE slug=?');
           $add=db()->prepare('INSERT INTO games(title,slug,game_type,category,difficulty,intro,content_json,active,sound_enabled,sort_order) VALUES(?,?,?,?,?,?,?,1,1,?)');
@@ -148,7 +126,16 @@ function ensure_runtime_schema(): void {
               $add->execute([$g['title'],$g['slug'],$g['type'],'Ciberseguridad',$g['difficulty'],$g['intro'],json_encode($g['items'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$i+1]);
             }
           }
-          set_setting('game_content_schema','3');
+          set_setting('game_content_schema','4');
+        }
+
+        // v9.11: limpia únicamente partidas del Reto rápido que quedaron cerradas
+        // por el temporizador interno legado cuando el juego estaba configurado en 0 (sin límite).
+        if(setting('legacy_speed_timer_cleanup_v911','0')!=='1'){
+          try{
+            db()->exec("DELETE ga FROM game_attempts ga INNER JOIN games g ON g.id=ga.game_id WHERE g.slug='reto-rapido' AND COALESCE(g.time_limit_seconds,0)=0 AND ga.answers_json LIKE '%Sin respuesta · tiempo agotado%'");
+          }catch(Throwable){}
+          set_setting('legacy_speed_timer_cleanup_v911','1');
         }
 
         // v8.7: lenguaje más intuitivo en preguntas base ya instaladas.
@@ -202,10 +189,10 @@ function game_seed_data(): array {
  return [
  ['title'=>'Detecta el peligro','slug'=>'detecta-el-peligro','type'=>'hotspot','difficulty'=>'Intermedio','intro'=>'Explora un correo realista y toca las señales que podrían indicar un intento de fraude.','visual'=>'email-alert.svg','items'=>[
   ['prompt'=>'Encuentra las 3 señales de riesgo en este correo antes de continuar.','scene'=>'email','hotspots'=>[
-    ['x'=>74,'y'=>24,'label'=>'Dominio sospechoso','correct'=>1,'explanation'=>'El remitente usa empresa-seguridad.example en lugar del dominio corporativo real.'],
-    ['x'=>51,'y'=>49,'label'=>'Urgencia artificial','correct'=>1,'explanation'=>'La presión de tiempo busca que actúes sin validar la solicitud.'],
-    ['x'=>51,'y'=>72,'label'=>'Enlace externo','correct'=>1,'explanation'=>'El botón dirige a un dominio que no pertenece a la empresa.'],
-    ['x'=>16,'y'=>14,'label'=>'Logo','correct'=>0,'explanation'=>'El logo por sí solo no confirma legitimidad; puede copiarse fácilmente.']],
+    ['x'=>57,'y'=>40,'label'=>'Dominio sospechoso','marker_label'=>'Remitente','hint'=>'Revisa la dirección completa del remitente y el dominio después de @.','correct'=>1,'explanation'=>'El remitente usa empresa-seguridad.example en lugar del dominio corporativo real.'],
+    ['x'=>55,'y'=>55,'label'=>'Urgencia artificial','marker_label'=>'Urgencia','hint'=>'Revisa si el mensaje intenta presionarte para actuar sin validar.','correct'=>1,'explanation'=>'La presión de tiempo busca que actúes sin validar la solicitud.'],
+    ['x'=>58,'y'=>76,'label'=>'Enlace externo','marker_label'=>'Destino','hint'=>'Revisa el dominio mostrado junto al botón antes de interactuar.','correct'=>1,'explanation'=>'El botón dirige a un dominio que no pertenece a la empresa.'],
+    ['x'=>20,'y'=>36,'label'=>'Nombre visible del remitente','marker_label'=>'Nombre visible','hint'=>'Revisa el nombre “Microsoft Security”; un nombre conocido puede copiarse y no valida por sí solo el correo.','correct'=>0,'explanation'=>'El nombre visible por sí solo no confirma legitimidad; puede copiarse fácilmente.']],
    'explanation'=>'Excelente: dominio, urgencia y destino del enlace deben validarse antes de interactuar.'],
   ['prompt'=>'Ahora localiza las 2 señales más importantes en este segundo mensaje.','scene'=>'attachment','hotspots'=>[
     ['x'=>73,'y'=>26,'label'=>'Remitente externo','correct'=>1,'explanation'=>'El dominio no coincide con el proveedor habitual.'],
@@ -223,10 +210,10 @@ function game_seed_data(): array {
   ['prompt'=>'Recibes una llamada que dice ser del banco y te pide instalar una app de soporte remoto.','options'=>['La instalo si saben mi nombre','Cuelgo y llamo al número oficial del banco','La instalo y luego la borro','Comparto pantalla sin dar contraseña'],'correct'=>1,'explanation'=>'Corta el contacto y valida por un canal que tú mismo inicies.']]],
  ['title'=>'Encuentra los errores','slug'=>'encuentra-los-errores','type'=>'find','difficulty'=>'Avanzado','intro'=>'Inspecciona una pantalla y encuentra todos los errores antes de enviar información sensible.','visual'=>'login-errors.svg','items'=>[
   ['prompt'=>'Encuentra los 3 errores de seguridad en esta pantalla de inicio de sesión.','scene'=>'login','hotspots'=>[
-    ['x'=>55,'y'=>19,'label'=>'Dominio falso','correct'=>1,'explanation'=>'empresa-login.example no es el dominio corporativo esperado.'],
-    ['x'=>52,'y'=>58,'label'=>'Solicita código de verificación en dos pasos (MFA) junto a la contraseña','correct'=>1,'explanation'=>'Un formulario inesperado que pide todo a la vez merece validación adicional.'],
-    ['x'=>53,'y'=>80,'label'=>'Mensaje de presión','correct'=>1,'explanation'=>'La amenaza de bloqueo inmediato busca reducir tu tiempo de análisis.'],
-    ['x'=>17,'y'=>34,'label'=>'Candado','correct'=>0,'explanation'=>'El candado solo indica cifrado de la conexión; no confirma la identidad del sitio.']],
+    ['x'=>55,'y'=>16,'label'=>'Dominio falso','correct'=>1,'hint'=>'Revisa el dominio mostrado en la barra superior.','explanation'=>'empresa-login.example no es el dominio corporativo esperado.'],
+    ['x'=>52,'y'=>66,'label'=>'Solicita código de verificación en dos pasos (MFA) junto a la contraseña','correct'=>1,'hint'=>'Revisa cómo se solicita la verificación en dos pasos.','explanation'=>'Un formulario inesperado que pide todo a la vez merece validación adicional.'],
+    ['x'=>53,'y'=>86,'label'=>'Mensaje de presión','correct'=>1,'hint'=>'Revisa el mensaje que aparece al final del formulario.','explanation'=>'La amenaza de bloqueo inmediato busca reducir tu tiempo de análisis.'],
+    ['x'=>17,'y'=>35,'label'=>'Candado','correct'=>0,'hint'=>'Revisa el indicador visual señalado junto al formulario.','explanation'=>'El candado solo indica cifrado de la conexión; no confirma la identidad del sitio.']],
    'explanation'=>'Perfecto. El dominio, la solicitud inusual y la presión de tiempo forman una combinación de alto riesgo.'],
   ['prompt'=>'Encuentra las 2 señales de riesgo en este aviso de soporte.','scene'=>'support','hotspots'=>[
     ['x'=>74,'y'=>28,'label'=>'Dominio externo','correct'=>1,'explanation'=>'El remitente no pertenece al dominio oficial.'],
@@ -239,10 +226,10 @@ function game_seed_data(): array {
     ['x'=>52,'y'=>78,'label'=>'Amenaza con cerrar la cuenta','correct'=>1,'explanation'=>'La presión de tiempo busca que actúes antes de verificar.'],
     ['x'=>18,'y'=>44,'label'=>'Número de caso','correct'=>0,'explanation'=>'Un número de caso puede ser inventado y no demuestra que el mensaje sea legítimo.']],
    'explanation'=>'Valida remitente, herramienta solicitada y urgencia antes de permitir acceso remoto.']]],
- ['title'=>'Reto rápido','slug'=>'reto-rapido','type'=>'speed','difficulty'=>'Intermedio','intro'=>'Responde micro-retos contra reloj. La precisión vale más que correr sin revisar.','visual'=>'speed-shield.svg','items'=>[
-  ['prompt'=>'¿Cuál contraseña es más resistente?','options'=>['Empresa2026','Password123!','Lago-Cobre-Nube-47!','Edwin123'],'correct'=>2,'seconds'=>12,'explanation'=>'Las frases largas y únicas son más resistentes y más fáciles de recordar que patrones comunes.'],
-  ['prompt'=>'¿Qué haces antes de escanear un QR inesperado?','options'=>['Lo abro y luego reviso','Valido quién lo envió y el destino','Desactivo datos móviles','Le tomo captura'],'correct'=>1,'seconds'=>10,'explanation'=>'Los QR pueden ocultar destinos. Valida contexto y procedencia antes de abrirlos.'],
-  ['prompt'=>'¿Qué protege mejor una cuenta además de la contraseña?','options'=>['Verificación en dos pasos (MFA)','Modo oscuro','Cambiar el fondo','Cerrar el navegador'],'correct'=>0,'seconds'=>8,'explanation'=>'La verificación en dos pasos (MFA) agrega una comprobación adicional y reduce el impacto de una contraseña comprometida.']]],
+ ['title'=>'Reto rápido','slug'=>'reto-rapido','type'=>'speed','difficulty'=>'Intermedio','intro'=>'Responde micro-retos con atención. Solo habrá cuenta regresiva cuando el administrador configure un tiempo límite para el juego.','visual'=>'speed-shield.svg','items'=>[
+  ['prompt'=>'¿Cuál contraseña es más resistente?','options'=>['Empresa2026','Password123!','Lago-Cobre-Nube-47!','Edwin123'],'correct'=>2,'explanation'=>'Las frases largas y únicas son más resistentes y más fáciles de recordar que patrones comunes.'],
+  ['prompt'=>'¿Qué haces antes de escanear un QR inesperado?','options'=>['Lo abro y luego reviso','Valido quién lo envió y el destino','Desactivo datos móviles','Le tomo captura'],'correct'=>1,'explanation'=>'Los QR pueden ocultar destinos. Valida contexto y procedencia antes de abrirlos.'],
+  ['prompt'=>'¿Qué protege mejor una cuenta además de la contraseña?','options'=>['Verificación en dos pasos (MFA)','Modo oscuro','Cambiar el fondo','Cerrar el navegador'],'correct'=>0,'explanation'=>'La verificación en dos pasos (MFA) agrega una comprobación adicional y reduce el impacto de una contraseña comprometida.']]],
  ['title'=>'Ordena los pasos','slug'=>'ordena-los-pasos','type'=>'order','difficulty'=>'Intermedio','intro'=>'Arrastra y suelta las acciones hasta construir la secuencia correcta de respuesta.','visual'=>'order-incident.svg','items'=>[
   ['prompt'=>'Ordena qué hacer ante un correo sospechoso.','options'=>['No interactuar con enlaces o adjuntos','Verificar remitente y contexto','Reportar por el canal oficial','Eliminar o aislar según el procedimiento'],'correctOrder'=>[0,1,2,3],'explanation'=>'La secuencia reduce la exposición, valida la sospecha y permite que Seguridad actúe.'],
   ['prompt'=>'Ordena la respuesta ante una contraseña posiblemente comprometida.','options'=>['Cambiar la contraseña desde el sitio oficial','Cerrar sesiones activas desconocidas','Activar o revisar la verificación en dos pasos (MFA)','Reportar el incidente si hubo acceso no autorizado'],'correctOrder'=>[0,1,2,3],'explanation'=>'Primero recupera el control de la cuenta, luego refuerza la autenticación y reporta cualquier acceso indebido.']]],
