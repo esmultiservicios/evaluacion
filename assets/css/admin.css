@@ -766,3 +766,19 @@ body.admin-loading .admin-topbar:after{content:"";position:absolute;left:0;right
 .bulk-time-note>svg{flex:0 0 20px;color:#0b7183;margin-top:1px}
 .bulk-time-note span{display:block;min-width:0}.bulk-time-note strong,.bulk-time-note small{display:block}
 .bulk-time-note strong{color:#073763;font-size:11px}.bulk-time-note small{margin-top:3px;color:#627c8c;font-size:9.8px;line-height:1.45}
+
+
+/* v9.27 · acceso administrativo más legible en escritorio */
+@media (min-width: 900px){
+  .login-body{padding:32px}
+  .auth-shell{max-width:680px}
+  .login-card{width:min(560px,100%);padding:42px 44px;border-radius:26px}
+  .auth-brand-logo{width:60px;height:60px;border-radius:17px;font-size:18px}
+  .login-card .eyebrow{font-size:12px;letter-spacing:1.55px}
+  .login-card h1{font-size:34px;line-height:1.12;margin:16px 0 10px}
+  .login-card .auth-subtitle{font-size:15px;line-height:1.6;margin-bottom:27px}
+  .login-card label{font-size:13px}
+  .login-card input{min-height:52px;padding:14px 15px;font-size:14px;border-radius:13px}
+  .login-card .btn{min-height:50px;font-size:14px;border-radius:13px}
+  .login-card .auth-links{font-size:13px;margin-top:22px}
+}
