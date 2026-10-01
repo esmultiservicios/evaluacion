@@ -386,3 +386,111 @@ html{font-size:16px}body.public-body{font-weight:550;-webkit-font-smoothing:auto
   .public-body.evaluation-active #quizStep .question-stage{padding:16px 14px!important;border-radius:15px!important}
   .public-body.evaluation-active #quizStep .question-stage h3{font-size:18px!important;line-height:1.35!important;margin:8px 0 14px!important}
 }
+
+/* v9.16 · preguntas compactas y totalmente acopladas a móvil */
+.public-body.evaluation-active #quizStep{min-width:0}
+.public-body.evaluation-active #quizStep .quiz-wizard-head{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px;margin:0 0 10px;
+}
+.public-body.evaluation-active #quizStep .quiz-head-main{min-width:0}
+.public-body.evaluation-active #quizStep .quiz-heading-line{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;
+}
+.public-body.evaluation-active #quizStep .quiz-heading-line .step-pill{margin:0;white-space:nowrap}
+.public-body.evaluation-active #quizStep .quiz-section-title{
+  display:block;margin-top:7px;color:#546d7e;font-size:12px;line-height:1.35;font-weight:760;
+}
+.public-body.evaluation-active #quizStep .question-back-button{flex:0 0 auto;white-space:nowrap}
+.public-body.evaluation-active #quizStep .quiz-progress{margin:9px 0 12px;height:6px}
+.public-body.evaluation-active #quizStep .question-stage{min-width:0;overflow:hidden}
+.public-body.evaluation-active #quizStep .option{min-width:0}
+.public-body.evaluation-active #quizStep .option>span:last-of-type{min-width:0;overflow-wrap:anywhere}
+.public-body.evaluation-active #quizStep .wizard-footer{min-width:0}
+
+@media(max-width:650px){
+  .public-body.evaluation-active .public-shell{width:calc(100% - 12px)!important;padding-top:8px!important}
+  .public-body.evaluation-active .evaluation-card{padding:10px 9px 13px!important;border-radius:16px!important}
+  .public-body.evaluation-active #quizStep .quiz-wizard-head{
+    grid-template-columns:1fr!important;align-items:stretch!important;gap:5px!important;margin-bottom:7px!important;
+  }
+  .public-body.evaluation-active #quizStep .quiz-heading-line{gap:8px!important}
+  .public-body.evaluation-active #quizStep .quiz-heading-line .step-pill{
+    min-height:31px;display:inline-flex;align-items:center;padding:0 10px!important;font-size:10px!important;margin:0!important;
+  }
+  .public-body.evaluation-active #quizStep .question-back-button{
+    margin-left:auto!important;min-height:31px!important;height:31px!important;padding:0 10px!important;font-size:10px!important;border-radius:9px!important;
+  }
+  .public-body.evaluation-active #quizStep .quiz-section-title{
+    margin:4px 1px 0!important;font-size:10.5px!important;line-height:1.25!important;
+  }
+  .public-body.evaluation-active #quizStep .quiz-progress-copy{
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;text-align:left!important;
+  }
+  .public-body.evaluation-active #quizStep .quiz-progress-copy span,
+  .public-body.evaluation-active #quizStep .quiz-progress-copy small{
+    display:inline!important;margin:0!important;font-size:9.5px!important;line-height:1!important;
+  }
+  .public-body.evaluation-active #quizStep .quiz-progress{margin:6px 0 9px!important;height:5px!important}
+  .public-body.evaluation-active #quizStep .question-stage{padding:13px 11px!important;border-radius:14px!important}
+  .public-body.evaluation-active #quizStep .question-stage .question-num{font-size:9px!important}
+  .public-body.evaluation-active #quizStep .question-stage h3{font-size:17px!important;line-height:1.28!important;margin:6px 0 11px!important}
+  .public-body.evaluation-active #quizStep .options{gap:7px!important}
+  .public-body.evaluation-active #quizStep .option{
+    padding:10px 9px!important;gap:8px!important;border-radius:10px!important;font-size:12px!important;line-height:1.3!important;
+  }
+  .public-body.evaluation-active #quizStep .radio,
+  .public-body.evaluation-active #quizStep .check-box{width:18px!important;height:18px!important;flex-basis:18px!important}
+  .public-body.evaluation-active #quizStep .option-letter{width:21px!important;height:21px!important;margin-right:6px!important;font-size:9px!important}
+  .public-body.evaluation-active #quizStep .wizard-footer{
+    margin-top:10px!important;display:grid!important;grid-template-columns:1fr!important;gap:7px!important;
+  }
+  .public-body.evaluation-active #quizStep .answer-lock-note{text-align:center;font-size:9.5px!important;line-height:1.25!important}
+  .public-body.evaluation-active #quizStep #nextQuestion{width:100%!important;min-height:43px!important;margin:0!important}
+  .public-body.evaluation-active #quizStep .question-timer{margin-bottom:9px!important}
+}
+@media(max-width:390px){
+  .public-body.evaluation-active #quizStep .quiz-heading-line .step-pill{padding:0 8px!important;font-size:9.5px!important}
+  .public-body.evaluation-active #quizStep .question-back-button{padding:0 8px!important;font-size:9.5px!important}
+  .public-body.evaluation-active #quizStep .question-stage h3{font-size:16px!important}
+  .public-body.evaluation-active #quizStep .option{font-size:11.5px!important}
+}
+
+
+/* v9.17 · validación de gafete robusta + evaluación móvil compacta */
+.evaluation-badge-row{min-width:0}
+.evaluation-badge-row .input-icon{min-width:0;flex:1 1 auto}
+.evaluation-badge-row .evaluation-continue{flex:0 0 auto;white-space:nowrap}
+.evaluation-badge-row .evaluation-continue:disabled{opacity:.62;cursor:not-allowed}
+
+@media (max-width:680px){
+  body.public-body.evaluation-active .public-shell{padding-left:10px!important;padding-right:10px!important}
+  body.public-body.evaluation-active .evaluation-card{padding:10px!important;border-radius:18px!important}
+  body.public-body.evaluation-active .quiz-wizard-head{gap:8px!important;margin-bottom:6px!important;padding:0!important}
+  body.public-body.evaluation-active .quiz-heading-line{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important}
+  body.public-body.evaluation-active .quiz-heading-line .step-pill{min-width:0!important;white-space:nowrap!important}
+  body.public-body.evaluation-active .quiz-heading-line [data-question-home]{margin-left:auto!important;flex:0 0 auto!important;white-space:nowrap!important}
+  body.public-body.evaluation-active .quiz-section-title{font-size:13px!important;line-height:1.35!important;margin-top:2px!important}
+  body.public-body.evaluation-active .quiz-progress-copy{font-size:12px!important;gap:8px!important}
+  body.public-body.evaluation-active .quiz-progress{margin:5px 0 8px!important}
+  body.public-body.evaluation-active .question-stage{padding:12px!important;border-radius:16px!important}
+  body.public-body.evaluation-active .question-stage .question-num{margin-bottom:6px!important}
+  body.public-body.evaluation-active .question-stage h3{font-size:20px!important;line-height:1.25!important;margin:0 0 10px!important}
+  body.public-body.evaluation-active .options{gap:8px!important}
+  body.public-body.evaluation-active .option{padding:10px 11px!important;gap:9px!important;min-height:54px!important}
+  body.public-body.evaluation-active .option>span:last-of-type{min-width:0!important;overflow-wrap:anywhere!important}
+  body.public-body.evaluation-active .wizard-footer{gap:8px!important;margin-top:10px!important}
+  body.public-body.evaluation-active .answer-lock-note{font-size:11px!important;line-height:1.3!important}
+  body.public-body.evaluation-active #nextQuestion{width:100%!important;min-height:46px!important}
+  .evaluation-identify-shell{min-width:0!important}
+  .evaluation-identify-card,.evaluation-identify-visual{min-width:0!important}
+  .evaluation-badge-row{display:flex!important;gap:8px!important;align-items:stretch!important}
+  .evaluation-badge-row .input-icon{width:auto!important;flex:1 1 auto!important}
+  .evaluation-badge-row .evaluation-continue{padding-left:13px!important;padding-right:13px!important}
+}
+
+@media (max-width:420px){
+  .evaluation-badge-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important}
+  .evaluation-badge-row .evaluation-continue span:first-child{display:none!important}
+  .evaluation-badge-row .evaluation-continue{min-width:48px!important;padding:0 13px!important}
+  body.public-body.evaluation-active .question-stage h3{font-size:18px!important}
+}

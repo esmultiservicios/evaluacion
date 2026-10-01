@@ -25,9 +25,14 @@ try{
         $groupName=trim((string)($e['question_group']??''));
         $groupDescription='';
         if($groupName!==''){
-            $gq=db()->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');
-            $gq->execute([$groupName]);
-            $groupDescription=trim((string)($gq->fetchColumn()?:''));
+            try{
+                $gq=db()->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');
+                $gq->execute([$groupName]);
+                $groupDescription=trim((string)($gq->fetchColumn()?:''));
+            }catch(Throwable $groupError){
+                // La categoría descriptiva es opcional y no debe romper la sesión del participante.
+                $groupDescription='';
+            }
         }
         $e['question_group']=$groupName;
         $e['group_description']=$groupDescription;

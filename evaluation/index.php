@@ -17,16 +17,17 @@ $participantQuery = $sessionBadge !== '' ? '?participant='.rawurlencode($session
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#073763">
+    <style>body.evaluation-booting .public-shell{visibility:hidden!important}body.evaluation-page .motion-card{animation:none!important}</style>
     <title><?=e($browserTitle)?> · Preguntas</title>
     <link rel="icon" href="<?=e($favicon)?>">
     <link rel="shortcut icon" href="<?=e($favicon)?>">
     <link rel="apple-touch-icon" href="<?=e($favicon)?>">
-    <link rel="stylesheet" href="../assets/css/app.css?v=29">
+    <link rel="stylesheet" href="../assets/css/app.css?v=32">
     <link rel="stylesheet" href="../assets/css/notify.css?v=8">
     <link rel="stylesheet" href="../assets/vendor/sweetalert2/sweetalert2.local.css?v=8">
     <script>window.APP={csrf:<?=json_encode(csrf_token())?>,questionsPerAttempt:<?=json_encode(max(1,(int)setting('questions_per_attempt','5')))?>,campaignImage:<?=json_encode('../'.ltrim($questionCampaignImage,'/'),JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)?>,apiBase:'../api/',questionsPath:'./',gamesPath:'../juegos/'};</script>
 </head>
-<body class="public-body evaluation-booting">
+<body class="public-body evaluation-page evaluation-booting">
 <header class="public-topbar">
     <div class="public-nav">
         <a class="public-brand" href="./">
@@ -103,6 +104,6 @@ $participantQuery = $sessionBadge !== '' ? '?participant='.rawurlencode($session
 <script src="../assets/js/notify.js?v=7"></script>
 <script src="../assets/js/fullscreen.js?v=1"></script>
 <script src="../assets/js/public-sound.js?v=1"></script>
-<script src="../assets/js/app.js?v=23"></script>
+<script src="../assets/js/app.js?v=27"></script>
 </body>
 </html>

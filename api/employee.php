@@ -10,9 +10,14 @@ try{
     $groupName=trim((string)($e['question_group']??''));
     $groupDescription='';
     if($groupName!==''){
-        $gq=db()->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');
-        $gq->execute([$groupName]);
-        $groupDescription=trim((string)($gq->fetchColumn()?:''));
+        try{
+            $gq=db()->prepare('SELECT description FROM content_groups WHERE name=? LIMIT 1');
+            $gq->execute([$groupName]);
+            $groupDescription=trim((string)($gq->fetchColumn()?:''));
+        }catch(Throwable $groupError){
+            // La descripción de categoría es complementaria: nunca debe impedir validar el gafete.
+            $groupDescription='';
+        }
     }
     $e['question_group']=$groupName;
     $e['group_description']=$groupDescription;
