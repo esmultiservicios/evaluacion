@@ -498,3 +498,56 @@ html{font-size:16px}body.public-body{font-weight:550;-webkit-font-smoothing:auto
 /* v9.22 · evaluación sin flash: mismo principio de carga directa que Juegos */
 body.evaluation-page .motion-card,body.evaluation-page .question-stage,body.evaluation-page .employee-preview{animation:none!important;opacity:1!important;transform:none!important}
 body.evaluation-page .evaluation-card,body.evaluation-page .evaluation-identify-shell{animation:none!important;transition:none!important}
+
+/* v9.24 · botón Sonido uniforme con el resto del navbar público */
+.public-nav .sound-toggle{
+  height:40px;
+  min-height:40px;
+  padding:0 12px;
+  border:1px solid #cfe3e7;
+  border-radius:11px;
+  background:#e6f2f4;
+  color:#164d64;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font:inherit;
+  font-size:12px;
+  font-weight:850;
+  line-height:1;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  box-shadow:none;
+  white-space:nowrap;
+  transition:.16s;
+}
+.public-nav .sound-toggle:hover,
+.public-nav .sound-toggle:focus-visible{
+  background:#d5e9ed;
+  border-color:#b9d8df;
+  color:#123f59;
+  transform:translateY(-1px);
+  outline:none;
+  box-shadow:none;
+}
+.public-nav .sound-toggle.is-muted{
+  background:#eef4f6;
+  border-color:#d6e3e8;
+  color:#607788;
+}
+@media(max-width:720px){
+  .public-nav .sound-toggle{
+    width:38px;
+    flex:0 0 38px;
+    padding:0;
+  }
+  .public-nav .sound-toggle span{display:none}
+}
+@media(max-width:430px){
+  .public-nav .sound-toggle{
+    width:36px;
+    flex-basis:36px;
+  }
+}
