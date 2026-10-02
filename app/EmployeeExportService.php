@@ -10,35 +10,105 @@ final class EmployeeExportService
 
     public function outputXlsx(): never
     {
-        if(!class_exists('ZipArchive')) $this->outputExcelFallback();
         $rows=$this->rows();
-        $all=[['ID','Gafete','Nombre','Departamento','Correo','Estado','Fecha de registro']];
-        foreach($rows as $r){
-            $all[]=[(string)$r['id'],(string)$r['badge'],(string)$r['name'],(string)($r['department']??''),(string)($r['email']??''),(string)($r['status']==='active'?'Activo':'Inactivo'),(string)($r['created_at']??'')];
-        }
-        $tmp=tempnam(sys_get_temp_dir(),'employees_');
-        $zip=new ZipArchive();
-        if($zip->open($tmp,ZipArchive::CREATE|ZipArchive::OVERWRITE)!==true) $this->outputExcelFallback();
         $sheet='';
-        foreach($all as $ri=>$row){
-            $cells='';
-            foreach($row as $ci=>$val){
-                $ref=$this->col($ci+1).($ri+1);$style=$ri===0?' s="1"':'';
-                $cells.='<c r="'.$ref.'" t="inlineStr"'.$style.'><is><t>'.htmlspecialchars((string)$val,ENT_XML1|ENT_QUOTES,'UTF-8').'</t></is></c>';
-            }
-            $sheet.='<row r="'.($ri+1).'">'.$cells.'</row>';
+        $sheet.='<row r="1" ht="30" customHeight="1">'.$this->xlsxRowCells(1,['Directorio de empleados','','','','','',''],[1,1,1,1,1,1,1]).'</row>';
+        $sheet.='<row r="2">'.$this->xlsxRowCells(2,['Exportación administrativa · '.date('d/m/Y H:i'),'','','','','',''],[2,2,2,2,2,2,2]).'</row>';
+        $sheet.='<row r="4" ht="22" customHeight="1">'.$this->xlsxRowCells(4,['ID','Gafete','Nombre','Departamento','Correo','Estado','Fecha de registro'],[3,3,3,3,3,3,3]).'</row>';
+        $rnum=5;
+        foreach($rows as $r){
+            $vals=[(string)$r['id'],(string)$r['badge'],(string)$r['name'],(string)($r['department']??''),(string)($r['email']??''),(string)($r['status']==='active'?'Activo':'Inactivo'),(string)($r['created_at']??'')];
+            $sheet.='<row r="'.$rnum.'">'.$this->xlsxRowCells($rnum,$vals,[4,4,4,4,4,4,4]).'</row>';
+            $rnum++;
         }
-        $zip->addFromString('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
-        $zip->addFromString('_rels/.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
-        $zip->addFromString('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Empleados" sheetId="1" r:id="rId1"/></sheets></workbook>');
-        $zip->addFromString('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
-        $zip->addFromString('xl/styles.xml','<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B315B"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="1" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>');
-        $last=max(1,count($all));
-        $zip->addFromString('xl/worksheets/sheet1.xml','<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="2" width="14" customWidth="1"/><col min="3" max="3" width="34" customWidth="1"/><col min="4" max="4" width="25" customWidth="1"/><col min="5" max="5" width="34" customWidth="1"/><col min="6" max="7" width="20" customWidth="1"/></cols><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetData>'.$sheet.'</sheetData><autoFilter ref="A1:G'.$last.'"/></worksheet>');
-        $zip->close();
+        $last=max(4,$rnum-1);
+        $sheetXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            .'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            .'<sheetViews><sheetView workbookViewId="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+            .'<sheetFormatPr defaultRowHeight="15"/>'
+            .'<cols><col min="1" max="1" width="8" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/><col min="3" max="3" width="30" customWidth="1"/><col min="4" max="4" width="24" customWidth="1"/><col min="5" max="5" width="32" customWidth="1"/><col min="6" max="6" width="14" customWidth="1"/><col min="7" max="7" width="20" customWidth="1"/></cols>'
+            .'<sheetData>'.$sheet.'</sheetData>'
+            .'<autoFilter ref="A4:G'.$last.'"/>'
+            .'<mergeCells count="2"><mergeCell ref="A1:G1"/><mergeCell ref="A2:G2"/></mergeCells>'
+            .'<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>'
+            .'</worksheet>';
+
+        $styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            .'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            .'<fonts count="5">'
+            .'<font><sz val="11"/><name val="Calibri"/><family val="2"/></font>'
+            .'<font><b/><sz val="18"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>'
+            .'<font><i/><sz val="11"/><color rgb="FF0B315B"/><name val="Calibri"/><family val="2"/></font>'
+            .'<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>'
+            .'<font><sz val="11"/><color rgb="FF16324F"/><name val="Calibri"/><family val="2"/></font>'
+            .'</fonts>'
+            .'<fills count="6"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B315B"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE8F6F8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0F6F7E"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF7FBFC"/><bgColor indexed="64"/></patternFill></fill></fills>'
+            .'<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD9E4EA"/></left><right style="thin"><color rgb="FFD9E4EA"/></right><top style="thin"><color rgb="FFD9E4EA"/></top><bottom style="thin"><color rgb="FFD9E4EA"/></bottom><diagonal/></border></borders>'
+            .'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+            .'<cellXfs count="5">'
+            .'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+            .'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf>'
+            .'<xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
+            .'<xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+            .'<xf numFmtId="0" fontId="4" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+            .'</cellXfs>'
+            .'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+            .'</styleSheet>';
+
+        $files=[
+            '[Content_Types].xml'=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+            '_rels/.rels'=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>',
+            'docProps/core.xml'=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:creator>Evaluación Corporativa</dc:creator><cp:lastModifiedBy>Evaluación Corporativa</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">'.gmdate('Y-m-d\TH:i:s\Z').'</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">'.gmdate('Y-m-d\TH:i:s\Z').'</dcterms:modified></cp:coreProperties>',
+            'docProps/app.xml'=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Evaluación Corporativa</Application></Properties>',
+            'xl/workbook.xml'=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="24000" windowHeight="12000"/></bookViews><sheets><sheet name="Empleados" sheetId="1" r:id="rId1"/></sheets></workbook>',
+            'xl/_rels/workbook.xml.rels'=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+            'xl/styles.xml'=>$styles,
+            'xl/worksheets/sheet1.xml'=>$sheetXml,
+        ];
+        $xlsx=$this->zipStore($files);
+
+        $this->clearOutputBuffers();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="empleados-'.date('Ymd-His').'.xlsx"');
-        header('Content-Length: '.filesize($tmp));readfile($tmp);@unlink($tmp);exit;
+        header('Content-Transfer-Encoding: binary');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Content-Length: '.strlen($xlsx));
+        echo $xlsx;
+        exit;
+    }
+
+    private function xlsxRowCells(int $row,array $values,array $styles): string
+    {
+        $cells='';
+        foreach($values as $i=>$value){
+            $ref=$this->col($i+1).$row;$style=(int)($styles[$i]??0);
+            if($value===''){$cells.='<c r="'.$ref.'" s="'.$style.'"/>';continue;}
+            $escaped=htmlspecialchars((string)$value,ENT_XML1|ENT_QUOTES,'UTF-8');
+            $cells.='<c r="'.$ref.'" s="'.$style.'" t="inlineStr"><is><t xml:space="preserve">'.$escaped.'</t></is></c>';
+        }
+        return $cells;
+    }
+
+    /** @param array<string,string> $files */
+    private function zipStore(array $files): string
+    {
+        $data='';$central='';$offset=0;$count=0;
+        $now=getdate();$dosTime=(($now['hours']&31)<<11)|(($now['minutes']&63)<<5)|(int)floor(($now['seconds']&63)/2);$dosDate=((max(1980,$now['year'])-1980)<<9)|(($now['mon']&15)<<5)|($now['mday']&31);
+        foreach($files as $name=>$content){
+            $name=(string)$name;$content=(string)$content;$crc=(int)sprintf('%u',crc32($content));$size=strlen($content);$nameLen=strlen($name);
+            $local="PK\x03\x04".pack('vvvvvVVVvv',20,0,0,$dosTime,$dosDate,$crc,$size,$size,$nameLen,0).$name.$content;
+            $data.=$local;
+            $central.="PK\x01\x02".pack('vvvvvvVVVvvvvvVV',20,20,0,0,$dosTime,$dosDate,$crc,$size,$size,$nameLen,0,0,0,0,0,$offset).$name;
+            $offset+=strlen($local);$count++;
+        }
+        $centralOffset=strlen($data);$centralSize=strlen($central);
+        return $data.$central."PK\x05\x06".pack('vvvvVVv',0,0,$count,$count,$centralSize,$centralOffset,0);
+    }
+
+    private function clearOutputBuffers(): void
+    {
+        while(ob_get_level()>0){@ob_end_clean();}
     }
 
     public function outputPdf(): never
